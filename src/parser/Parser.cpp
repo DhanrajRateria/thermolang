@@ -213,25 +213,79 @@ namespace thermolang
     std::unique_ptr<Stmt> Parser::thermal_statement()
     {
         Token keyword = previous();
-        auto block = block_statement();
-        auto *block_stmt = dynamic_cast<BlockStmt *>(block.get());
-        if (!block_stmt)
+
+        // Make sure we have an opening brace
+        consume(TokenType::LBRACE, "Expect '{' after 'thermal' keyword.");
+
+        try
         {
-            throw error("Expected block after 'thermal' keyword.");
+            // Parse statements within the thermal block
+            std::vector<std::unique_ptr<Stmt>> statements;
+            while (!check(TokenType::RBRACE) && !is_at_end())
+            {
+                auto stmt = declaration();
+                if (stmt)
+                    statements.push_back(std::move(stmt));
+            }
+
+            // Make sure we have a closing brace
+            consume(TokenType::RBRACE, "Expect '}' to end thermal block.");
+
+            // Create and return the thermal statement with its own block
+            return std::make_unique<ThermalStmt>(
+                keyword,
+                std::make_unique<BlockStmt>(std::move(statements)));
         }
-        return std::make_unique<ThermalStmt>(keyword, std::unique_ptr<BlockStmt>(block_stmt));
+        catch (const ParseError &error)
+        {
+            // Improve error handling to prevent segfaults
+            had_error_ = true;
+            synchronize();
+
+            // Return an empty thermal statement to allow parsing to continue
+            return std::make_unique<ThermalStmt>(
+                keyword,
+                std::make_unique<BlockStmt>(std::vector<std::unique_ptr<Stmt>>()));
+        }
     }
 
     std::unique_ptr<Stmt> Parser::parallel_statement()
     {
         Token keyword = previous();
-        auto block = block_statement();
-        auto *block_stmt = dynamic_cast<BlockStmt *>(block.get());
-        if (!block_stmt)
+
+        // Make sure we have an opening brace
+        consume(TokenType::LBRACE, "Expect '{' after 'parallel' keyword.");
+
+        try
         {
-            throw error("Expected block after 'parallel' keyword.");
+            // Parse statements within the parallel block
+            std::vector<std::unique_ptr<Stmt>> statements;
+            while (!check(TokenType::RBRACE) && !is_at_end())
+            {
+                auto stmt = declaration();
+                if (stmt)
+                    statements.push_back(std::move(stmt));
+            }
+
+            // Make sure we have a closing brace
+            consume(TokenType::RBRACE, "Expect '}' to end parallel block.");
+
+            // Create and return the parallel statement with its own block
+            return std::make_unique<ParallelStmt>(
+                keyword,
+                std::make_unique<BlockStmt>(std::move(statements)));
         }
-        return std::make_unique<ParallelStmt>(keyword, std::unique_ptr<BlockStmt>(block_stmt));
+        catch (const ParseError &error)
+        {
+            // Improve error handling to prevent segfaults
+            had_error_ = true;
+            synchronize();
+
+            // Return an empty parallel statement to allow parsing to continue
+            return std::make_unique<ParallelStmt>(
+                keyword,
+                std::make_unique<BlockStmt>(std::vector<std::unique_ptr<Stmt>>()));
+        }
     }
 
     std::unique_ptr<Stmt> Parser::type_declaration()

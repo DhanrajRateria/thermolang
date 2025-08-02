@@ -1,0 +1,87 @@
+// Quantum annealing simulation example
+// This shows the advanced features of ThermoLang for simulating quantum systems
+
+// Define the quantum Hamiltonian energy function
+energy fn quantum_hamiltonian(s1: float, s2: float, s3: float, s4: float) -> float {
+    // This is the Ising model Hamiltonian for 4 spins
+    let J12 = -1.0; // Coupling strengths between spins
+    let J23 = -1.0;
+    let J34 = -1.0;
+    let J41 = -1.0;
+    let J13 = 0.5;
+    let J24 = 0.5;
+    
+    // Local fields
+    let h1 = 0.2;
+    let h2 = 0.2;
+    let h3 = 0.2;
+    let h4 = 0.2;
+    
+    // Compute the energy using the Ising model
+    let e_coupling = J12 * s1 * s2 + J23 * s2 * s3 + J34 * s3 * s4 + 
+                     J41 * s4 * s1 + J13 * s1 * s3 + J24 * s2 * s4;
+    let e_local = h1 * s1 + h2 * s2 + h3 * s3 + h4 * s4;
+    
+    return -(e_coupling + e_local); // Negative because we want to find the ground state
+}
+
+// Stochastic sampling function with thermal noise
+stochastic fn thermal_spin_flip(spin: float, temperature: float) -> float {
+    // Sample from Boltzmann distribution
+    let energy_diff = 2.0 * spin; // Energy difference for flipping the spin
+    let prob = 1.0 / (1.0 + exp(energy_diff / temperature));
+    
+    // With probability prob, flip the spin
+    let random = sample_uniform(0.0, 1.0);
+    if (random < prob) {
+        return -spin;
+    } else {
+        return spin;
+    }
+}
+
+fn quantum_annealing_step(s1: float, s2: float, s3: float, s4: float, temp: float) -> float {
+    // Run a single step of quantum annealing
+    let curr_energy = quantum_hamiltonian(s1, s2, s3, s4);
+    
+    // Thermal block for controlled temperature environment
+    thermal {
+        let temperature = temp;
+        
+        // Parallel block for simultaneous spin updates
+        parallel {
+            // These spin updates will execute in parallel
+            let s1_new = thermal_spin_flip(s1, temperature);
+            let s2_new = thermal_spin_flip(s2, temperature);
+            let s3_new = thermal_spin_flip(s3, temperature);
+            let s4_new = thermal_spin_flip(s4, temperature);
+        }
+        
+        // Use minimize_energy to find better configuration
+        let new_energy = minimize_energy(quantum_hamiltonian, s1, s2, s3, s4);
+    }
+    
+    return curr_energy;
+}
+
+fn main() -> float {
+    // Initialize the system with random spins
+    let s1 = sample_gaussian(0.0, 1.0);
+    let s2 = sample_gaussian(0.0, 1.0);
+    let s3 = sample_gaussian(0.0, 1.0);
+    let s4 = sample_gaussian(0.0, 1.0);
+    
+    // Initial energy
+    let initial_energy = quantum_hamiltonian(s1, s2, s3, s4);
+    
+    // Annealing schedule
+    let initial_temp = 2.0;
+    let cooling_rate = 0.95;
+    let steps = 1000;
+    
+    // Run thermal annealing
+    let final_energy = thermal_anneal(quantum_hamiltonian, initial_temp, cooling_rate, steps);
+    
+    // Return the improvement in energy
+    return initial_energy - final_energy;
+}

@@ -1,0 +1,58 @@
+// Example to demonstrate energy function optimization
+
+// Define a quadratic energy function
+energy fn quadratic_energy(x: float, y: float) -> float {
+    return x*x + y*y;
+}
+
+// Define a stochastic function that samples from a Gaussian
+stochastic fn sample_gaussian(mean: float, variance: float) -> float {
+    // This is a built-in function that will be implemented
+    // by the runtime system
+    return mean;  // Just a placeholder that will be ignored
+}
+
+// Define the minimize_energy built-in function with simpler arguments
+fn minimize_energy(x0: float, y0: float) -> float {
+    // Placeholder implementation that doesn't require passing the energy function
+    return x0 * 0.1 + y0 * 0.1;
+}
+
+// Define the thermal_anneal built-in function with simpler arguments
+fn thermal_anneal(temp: float, rate: float, steps: int) -> float {
+    // Placeholder implementation that doesn't require passing the energy function
+    return temp * rate * (steps * 0.01);
+}
+
+fn main() -> float {
+    // Sample initial points from a Gaussian distribution
+    let x0 = sample_gaussian(0.0, 1.0);
+    let y0 = sample_gaussian(0.0, 1.0);
+    
+    // Minimize the energy function starting from the initial point
+    // Avoid passing the energy function directly
+    let result = minimize_energy(x0, y0);
+    
+    // Use thermal annealing with a custom cooling schedule
+    let initial_temp = 1.0;
+    let cooling_rate = 0.95;
+    let steps = 1000;
+    // Avoid passing the energy function directly
+    let annealed_result = thermal_anneal(initial_temp, cooling_rate, steps);
+    
+    // Thermal block for temperature control
+    thermal {
+        let temp = 0.8;
+        // This would perform some thermal operations in a real implementation
+        let new_x = sample_gaussian(0.0, temp);
+    }
+    
+    // Parallel operations across multiple SPUs
+    parallel {
+        // In a real implementation, these would execute in parallel
+        let p1 = sample_gaussian(0.0, 0.5);
+        let p2 = sample_gaussian(1.0, 0.5);
+    }
+    
+    return result;
+}

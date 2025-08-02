@@ -8,10 +8,10 @@
 
 namespace thermolang::optimizer
 {
-
     class OptimizationManager
     {
     public:
+        // Simpler non-template version that takes a base class pointer
         void add_pass(std::unique_ptr<IRPass> pass);
 
         // Runs all registered passes over a single function's IR.

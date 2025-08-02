@@ -1,6 +1,7 @@
 #include "thermolang/optimizer/Passes.h"
 #include <unordered_map>
 #include <variant>
+#include "thermolang/optimizer/ConstantFoldingPass.h"
 
 namespace thermolang::optimizer
 {

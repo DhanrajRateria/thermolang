@@ -8,6 +8,11 @@
 #include "thermolang/compiler/IrGenerator.h"
 #include "thermolang/optimizer/OptimizationManager.h"
 #include "thermolang/optimizer/Passes.h"
+#include "thermolang/optimizer/EnergyFunctionOptimizer.h"
+#include "thermolang/optimizer/CircuitTopologyOptimizer.h"
+#include "thermolang/optimizer/ThermalSchedulingOptimizer.h"
+#include "thermolang/optimizer/VarianceTrackingPass.h"
+#include "thermolang/optimizer/ConstantFoldingPass.h"
 
 void run(const std::string &source)
 {
@@ -52,8 +57,22 @@ void run(const std::string &source)
     }
     std::cout << "---------------------" << std::endl;
 
+    // Set up the optimization manager with all our passes
     thermolang::optimizer::OptimizationManager opt_manager;
-    opt_manager.add_pass(std::make_unique<thermolang::optimizer::ConstantFoldingPass>());
+
+    // General optimizations
+    opt_manager.add_pass(std::unique_ptr<thermolang::optimizer::IRPass>(
+        new thermolang::optimizer::ConstantFoldingPass()));
+
+    // Domain-specific optimizations
+    opt_manager.add_pass(std::unique_ptr<thermolang::optimizer::IRPass>(
+        new thermolang::optimizer::EnergyFunctionPass()));
+    opt_manager.add_pass(std::unique_ptr<thermolang::optimizer::IRPass>(
+        new thermolang::optimizer::CircuitTopologyPass()));
+    opt_manager.add_pass(std::unique_ptr<thermolang::optimizer::IRPass>(
+        new thermolang::optimizer::ThermalSchedulingPass()));
+    opt_manager.add_pass(std::unique_ptr<thermolang::optimizer::IRPass>(
+        new thermolang::optimizer::VarianceTrackingPass()));
 
     // Run optimizations on each function
     for (auto &func_ir : ir_program)
@@ -88,7 +107,7 @@ int main(int argc, char *argv[])
 {
     if (argc < 2)
     {
-        std::cout << "ThermoLang Compiler v0.2 - IR Generation" << std::endl;
+        std::cout << "ThermoLang Compiler v0.3 - Domain-Specific IR & Optimization" << std::endl;
         std::cout << "Usage: thermolangc <file>" << std::endl;
         return 64;
     }

@@ -120,17 +120,16 @@ TEST_F(IrGeneratorTest, FunctionCall)
 TEST_F(IrGeneratorTest, StochasticFunctionIsGenerated)
 {
     std::string source = R"(
-        stochastic fn sample(mean: float) -> float {
-            return mean;
+        stochastic fn sample(x: float) -> float {
+            return x;
         }
     )";
 
-    std::string expected_ir =
-        "function sample(r0) {\n"
-        "entry:\n"
-        "    return r0\n"
-        "}\n";
-
+    // Use the test fixture's helper function
     std::string actual_ir = generate_ir(source);
+
+    // Check for "stochastic function" in the generated IR
+    std::string expected_ir = "stochastic function sample(r0) {\nentry:\n    return r0\n}\n";
+
     EXPECT_EQ(actual_ir, expected_ir);
 }

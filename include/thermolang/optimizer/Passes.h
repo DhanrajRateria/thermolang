@@ -5,7 +5,6 @@
 
 namespace thermolang::optimizer
 {
-
     // Abstract base class for all IR optimization passes.
     class IRPass
     {
@@ -17,12 +16,12 @@ namespace thermolang::optimizer
         virtual bool run(ir::FunctionIR &function_ir) = 0;
     };
 
-    // Concrete pass declarations
-    class ConstantFoldingPass : public IRPass
-    {
-    public:
-        bool run(ir::FunctionIR &function_ir) override;
-    };
+    // Forward declarations of concrete passes
+    class ConstantFoldingPass;
+    class EnergyFunctionPass;
+    class CircuitTopologyPass;
+    class ThermalSchedulingPass;
+    class VarianceTrackingPass;
 
 } // namespace thermolang::optimizer
 

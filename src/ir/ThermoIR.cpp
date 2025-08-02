@@ -37,6 +37,28 @@ namespace thermolang::ir
             return "return";
         case OpCode::CALL:
             return "call";
+        case OpCode::SAMPLE_GAUSSIAN:
+            return "sample_gaussian";
+        case OpCode::SAMPLE_UNIFORM:
+            return "sample_uniform";
+        case OpCode::SAMPLE_BERNOULLI:
+            return "sample_bernoulli";
+        case OpCode::CREATE_ENERGY_FUNC:
+            return "create_energy_func";
+        case OpCode::MINIMIZE_ENERGY:
+            return "minimize_energy";
+        case OpCode::THERMAL_ANNEAL:
+            return "thermal_anneal";
+        case OpCode::SET_TEMPERATURE:
+            return "set_temperature";
+        case OpCode::COUPLE_CIRCUITS:
+            return "couple_circuits";
+        case OpCode::PARALLEL_FOR:
+            return "parallel_for";
+        case OpCode::THERMAL_STEP:
+            return "thermal_step";
+        case OpCode::VARIANCE_TRACK:
+            return "variance_track";
         default:
             return "unknown_op";
         }
@@ -91,9 +113,120 @@ namespace thermolang::ir
         return ss.str();
     }
 
+    // Domain-specific instruction toString implementations
+    std::string SampleGaussianInstr::toString() const
+    {
+        return "    " + result_reg + " = " + to_string(opcode) + " " +
+               to_string(mean) + ", " + to_string(variance);
+    }
+
+    std::string SampleUniformInstr::toString() const
+    {
+        return "    " + result_reg + " = " + to_string(opcode) + " " +
+               to_string(low) + ", " + to_string(high);
+    }
+
+    std::string SampleBernoulliInstr::toString() const
+    {
+        return "    " + result_reg + " = " + to_string(opcode) + " " + to_string(probability);
+    }
+
+    std::string CreateEnergyFuncInstr::toString() const
+    {
+        std::stringstream ss;
+        ss << "    " << result_reg << " = " << to_string(opcode) << " ";
+
+        ss << "[";
+        for (size_t i = 0; i < var_regs.size(); ++i)
+        {
+            ss << to_string(var_regs[i]);
+            if (i < var_regs.size() - 1)
+            {
+                ss << ", ";
+            }
+        }
+        ss << "] -> " << energy_expr_id;
+
+        return ss.str();
+    }
+
+    std::string MinimizeEnergyInstr::toString() const
+    {
+        std::stringstream ss;
+        ss << "    " << result_reg << " = " << to_string(opcode) << " "
+           << to_string(energy_func) << " [";
+
+        for (size_t i = 0; i < initial_values.size(); ++i)
+        {
+            ss << to_string(initial_values[i]);
+            if (i < initial_values.size() - 1)
+            {
+                ss << ", ";
+            }
+        }
+        ss << "]";
+
+        return ss.str();
+    }
+
+    std::string ThermalAnnealInstr::toString() const
+    {
+        return "    " + result_reg + " = " + to_string(opcode) + " " +
+               to_string(energy_func) + ", " + to_string(initial_temp) + ", " +
+               to_string(cooling_rate) + ", " + to_string(steps);
+    }
+
+    std::string SetTemperatureInstr::toString() const
+    {
+        return "    " + to_string(opcode) + " " + to_string(temperature);
+    }
+
+    std::string CoupleCircuitsInstr::toString() const
+    {
+        std::stringstream ss;
+        ss << "    " << result_reg << " = " << to_string(opcode) << " [";
+
+        for (size_t i = 0; i < circuit_regs.size(); ++i)
+        {
+            ss << to_string(circuit_regs[i]);
+            if (i < circuit_regs.size() - 1)
+            {
+                ss << ", ";
+            }
+        }
+        ss << "], " << to_string(coupling_strength);
+
+        return ss.str();
+    }
+
+    std::string ParallelForInstr::toString() const
+    {
+        return "    " + to_string(opcode) + " " + iterator_reg + " in " +
+               to_string(collection) + " -> " + body_block_label + ", exit: " + exit_block_label;
+    }
+
+    std::string ThermalStepInstr::toString() const
+    {
+        return "    " + result_reg + " = " + to_string(opcode) + " " +
+               to_string(current_state) + ", " + to_string(temperature);
+    }
+
+    std::string VarianceTrackInstr::toString() const
+    {
+        return "    " + result_reg + " = " + to_string(opcode) + " " +
+               to_string(value) + ", variance=" + to_string(variance);
+    }
+
     std::string FunctionIR::toString() const
     {
         std::stringstream ss;
+
+        // Add function modifiers
+        if (is_stochastic)
+            ss << "stochastic ";
+        if (is_energy_function)
+            ss << "energy ";
+
         ss << "function " << name << "(";
         for (size_t i = 0; i < parameters.size(); ++i)
         {
@@ -105,6 +238,25 @@ namespace thermolang::ir
         }
         ss << ") {\n";
 
+        // Energy expressions
+        if (!energy_expressions.empty())
+        {
+            ss << "  // Energy expressions\n";
+            for (const auto &[id, expr] : energy_expressions)
+            {
+                ss << "  energy_expr " << id << "(" << expr->var_names.size() << " vars) -> "
+                   << expr->result_reg << " {\n";
+
+                for (const auto &instr : expr->expression_block->instructions)
+                {
+                    ss << "  " << instr->toString() << "\n";
+                }
+
+                ss << "  }\n\n";
+            }
+        }
+
+        // Basic blocks
         for (const auto &block : basic_blocks)
         {
             ss << block->label << ":\n";

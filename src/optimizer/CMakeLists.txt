@@ -2,6 +2,10 @@
 add_library(ThermoLangOptimizer
     OptimizationManager.cpp
     ConstantFoldingPass.cpp
+    EnergyFunctionOptimizer.cpp
+    CircuitTopologyOptimizer.cpp
+    ThermalSchedulingOptimizer.cpp
+    VarianceTrackingPass.cpp
 )
 
 # Publicly expose the include directory for this library

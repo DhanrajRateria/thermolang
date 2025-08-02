@@ -9,6 +9,14 @@
 #include "thermolang/parser/Parser.h"
 #include "thermolang/semantics/SemanticAnalyzer.h"
 #include "thermolang/semantics/TypeChecker.h"
+#include "thermolang/optimizer/ConstantFoldingPass.h"
+#include "thermolang/optimizer/EnergyFunctionOptimizer.h"
+#include "thermolang/optimizer/CircuitTopologyOptimizer.h"
+#include "thermolang/optimizer/ThermalSchedulingOptimizer.h"
+#include "thermolang/optimizer/VarianceTrackingPass.h"
+#include "thermolang/parser/Parser.h"
+#include "thermolang/semantics/SemanticAnalyzer.h"
+#include "thermolang/semantics/TypeChecker.h"
 
 // Test fixture for Optimizer Passes
 class OptimizerTest : public ::testing::Test
@@ -63,7 +71,8 @@ TEST_F(OptimizerTest, ConstantFoldingPass)
 
     // Run the optimization
     thermolang::optimizer::OptimizationManager opt_manager;
-    opt_manager.add_pass(std::make_unique<thermolang::optimizer::ConstantFoldingPass>());
+    opt_manager.add_pass(std::unique_ptr<thermolang::optimizer::IRPass>(
+        new thermolang::optimizer::ConstantFoldingPass()));
     opt_manager.run(*ir);
 
     // Verify the result

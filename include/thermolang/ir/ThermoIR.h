@@ -6,6 +6,7 @@
 #include <vector>
 #include <memory>
 #include <variant>
+#include <unordered_map>
 
 namespace thermolang::ir
 {
@@ -37,8 +38,16 @@ namespace thermolang::ir
 
         // Domain-Specific Operations
         SAMPLE_GAUSSIAN,
+        SAMPLE_UNIFORM,
+        SAMPLE_BERNOULLI,
         CREATE_ENERGY_FUNC,
+        MINIMIZE_ENERGY,
         THERMAL_ANNEAL,
+        SET_TEMPERATURE,
+        COUPLE_CIRCUITS,
+        PARALLEL_FOR,
+        THERMAL_STEP,
+        VARIANCE_TRACK,
     };
 
     // Base class for all IR instructions.
@@ -110,6 +119,148 @@ namespace thermolang::ir
         std::string toString() const override;
     };
 
+    // Domain-specific instructions
+
+    struct SampleGaussianInstr : Instruction
+    {
+        std::string result_reg;
+        Operand mean;
+        Operand variance;
+
+        SampleGaussianInstr(std::string result, Operand m, Operand v)
+            : Instruction(OpCode::SAMPLE_GAUSSIAN), result_reg(result), mean(m), variance(v) {}
+
+        std::string toString() const override;
+    };
+
+    struct SampleUniformInstr : Instruction
+    {
+        std::string result_reg;
+        Operand low;
+        Operand high;
+
+        SampleUniformInstr(std::string result, Operand l, Operand h)
+            : Instruction(OpCode::SAMPLE_UNIFORM), result_reg(result), low(l), high(h) {}
+
+        std::string toString() const override;
+    };
+
+    struct SampleBernoulliInstr : Instruction
+    {
+        std::string result_reg;
+        Operand probability;
+
+        SampleBernoulliInstr(std::string result, Operand p)
+            : Instruction(OpCode::SAMPLE_BERNOULLI), result_reg(result), probability(p) {}
+
+        std::string toString() const override;
+    };
+
+    struct CreateEnergyFuncInstr : Instruction
+    {
+        std::string result_reg;
+        std::vector<Operand> var_regs;
+        std::string energy_expr_id; // Reference to an energy expression
+
+        CreateEnergyFuncInstr(std::string result, std::vector<Operand> vars, std::string expr_id)
+            : Instruction(OpCode::CREATE_ENERGY_FUNC), result_reg(result),
+              var_regs(std::move(vars)), energy_expr_id(expr_id) {}
+
+        std::string toString() const override;
+    };
+
+    struct MinimizeEnergyInstr : Instruction
+    {
+        std::string result_reg;
+        Operand energy_func;
+        std::vector<Operand> initial_values;
+
+        MinimizeEnergyInstr(std::string result, Operand func, std::vector<Operand> init_vals)
+            : Instruction(OpCode::MINIMIZE_ENERGY), result_reg(result),
+              energy_func(func), initial_values(std::move(init_vals)) {}
+
+        std::string toString() const override;
+    };
+
+    struct ThermalAnnealInstr : Instruction
+    {
+        std::string result_reg;
+        Operand energy_func;
+        Operand initial_temp;
+        Operand cooling_rate;
+        Operand steps;
+
+        ThermalAnnealInstr(std::string result, Operand func, Operand temp,
+                           Operand rate, Operand step_count)
+            : Instruction(OpCode::THERMAL_ANNEAL), result_reg(result),
+              energy_func(func), initial_temp(temp), cooling_rate(rate), steps(step_count) {}
+
+        std::string toString() const override;
+    };
+
+    struct SetTemperatureInstr : Instruction
+    {
+        Operand temperature;
+
+        SetTemperatureInstr(Operand temp)
+            : Instruction(OpCode::SET_TEMPERATURE), temperature(temp) {}
+
+        std::string toString() const override;
+    };
+
+    struct CoupleCircuitsInstr : Instruction
+    {
+        std::string result_reg;
+        std::vector<Operand> circuit_regs;
+        Operand coupling_strength;
+
+        CoupleCircuitsInstr(std::string result, std::vector<Operand> circuits, Operand strength)
+            : Instruction(OpCode::COUPLE_CIRCUITS), result_reg(result),
+              circuit_regs(std::move(circuits)), coupling_strength(strength) {}
+
+        std::string toString() const override;
+    };
+
+    struct ParallelForInstr : Instruction
+    {
+        std::string iterator_reg;
+        Operand collection;
+        std::string body_block_label;
+        std::string exit_block_label;
+
+        ParallelForInstr(std::string iter, Operand coll, std::string body, std::string exit)
+            : Instruction(OpCode::PARALLEL_FOR), iterator_reg(iter),
+              collection(coll), body_block_label(body), exit_block_label(exit) {}
+
+        std::string toString() const override;
+    };
+
+    struct ThermalStepInstr : Instruction
+    {
+        std::string result_reg;
+        Operand current_state;
+        Operand temperature;
+
+        ThermalStepInstr(std::string result, Operand state, Operand temp)
+            : Instruction(OpCode::THERMAL_STEP), result_reg(result),
+              current_state(state), temperature(temp) {}
+
+        std::string toString() const override;
+    };
+
+    struct VarianceTrackInstr : Instruction
+    {
+        std::string result_reg;
+        Operand value;
+        Operand variance;
+
+        VarianceTrackInstr(std::string result, Operand val, Operand var)
+            : Instruction(OpCode::VARIANCE_TRACK), result_reg(result),
+              value(val), variance(var) {}
+
+        std::string toString() const override;
+    };
+
     // A "Basic Block" is a straight-line sequence of instructions ending with a terminator.
     struct BasicBlock
     {
@@ -119,12 +270,29 @@ namespace thermolang::ir
         BasicBlock(std::string lbl) : label(std::move(lbl)) {}
     };
 
+    // Energy expression representation
+    struct EnergyExpression
+    {
+        std::string id;
+        std::vector<std::string> var_names;
+        std::unique_ptr<BasicBlock> expression_block;
+        std::string result_reg;
+
+        EnergyExpression(std::string id, std::vector<std::string> vars,
+                         std::unique_ptr<BasicBlock> block, std::string result)
+            : id(std::move(id)), var_names(std::move(vars)),
+              expression_block(std::move(block)), result_reg(std::move(result)) {}
+    };
+
     // A complete IR representation of a single function.
     struct FunctionIR
     {
         std::string name;
         std::vector<std::string> parameters; // Parameter registers
         std::vector<std::unique_ptr<BasicBlock>> basic_blocks;
+        std::unordered_map<std::string, std::unique_ptr<EnergyExpression>> energy_expressions;
+        bool is_stochastic = false;
+        bool is_energy_function = false;
 
         std::string toString() const;
     };
