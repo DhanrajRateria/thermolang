@@ -1,0 +1,6 @@
+// examples/3_optimizations/1_constant_folding.thermo
+fn test_folding() -> int {
+    let x = 10 + 20; // This should be folded
+    let y = x * 2;   // This will use the folded result
+    return y;
+}

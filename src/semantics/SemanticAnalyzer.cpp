@@ -197,8 +197,8 @@ namespace thermolang
 
     void SemanticAnalyzer::visit(const CallExpr &expr)
     {
-        if (expr.callee)
-            analyze(*expr.callee);
+        // if (expr.callee)
+        //     analyze(*expr.callee);
 
         for (const auto &arg : expr.arguments)
         {
