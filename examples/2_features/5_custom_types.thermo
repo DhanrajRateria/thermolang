@@ -1,0 +1,10 @@
+// Example with custom types
+type Gaussian = distribution<float, variance=1.0>;
+type EnergyFunc = function<float, float -> float>;
+type Circuit8 = circuit<nodes=8, couplings=full>;
+
+let g: Gaussian = sample_gaussian(0.0, 1.0);
+
+fn evaluate_energy(f: EnergyFunc, x: float, y: float) -> float {
+    return f(x, y);
+}

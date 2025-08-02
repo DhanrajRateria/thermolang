@@ -1,0 +1,3 @@
+// A valid program testing operator precedence.
+let initial_value = 100;
+let result = -initial_value + (5 * 20);

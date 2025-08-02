@@ -1,0 +1,3 @@
+// Parser Error: The current parser only supports 'let' statements at the top level.
+// It does not know what to do with 'fn'.
+fn my_function() {}

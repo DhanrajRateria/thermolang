@@ -1,0 +1,11 @@
+// Example showing basic type annotations
+let x: int = 42;
+let y: float = 3.14;
+let s: string = "hello";
+let b: bool = true;
+
+fn add(a: int, b: int) -> int {
+    return a + b;
+}
+
+let result: int = add(x, 10);

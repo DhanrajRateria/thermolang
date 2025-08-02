@@ -1,0 +1,7 @@
+// Example with stochastic functions
+stochastic fn sample_gaussian(mean: float, var: float) -> float {
+    let x: float = 0.0; // In a real implementation, this would sample from a Gaussian
+    return x;
+}
+
+let sample: float = sample_gaussian(0.0, 1.0);

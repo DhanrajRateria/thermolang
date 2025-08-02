@@ -1,0 +1,11 @@
+// Example with thermal blocks
+thermal {
+    let initial_temp: float = 1.0;
+    let cooling_rate: float = 0.95;
+    
+    let temp: float = initial_temp;
+    let result: float = 0.0;
+    
+    // This would simulate annealing in a real implementation
+    temp = temp * cooling_rate;
+}
