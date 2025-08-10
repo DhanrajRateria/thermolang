@@ -25,12 +25,18 @@ These are the primary functions for working with probability distributions.
 These functions interact with the thermodynamic properties of the hardware.
 
 ---
-`thermal fn anneal(energy_func: E, schedule: CoolingSchedule) -> Config`
-*   **Description:** Performs simulated thermal annealing to find the minimum energy configuration of a system.
-*   `energy_func`: An `energy` function that defines the problem landscape.
-*   `schedule`: A configuration for the cooling process.
-*   `Config`: The resulting state of variables that minimizes the energy.
+`thermal fn anneal(energy_func: E, schedule: CoolingSchedule) -> Configuration`
+*   **Description:** Performs simulated thermal annealing to find the minimum energy configuration of a system defined by `energy_func`. This is a blocking call that executes the full annealing schedule.
+*   `energy_func`: An `energy` function that defines the problem landscape. The function signature determines the variables to be optimized.
+*   `schedule`: A `CoolingSchedule` struct object, which must contain `initial_temp: float`, `cooling_rate: float`, and `steps: int`.
+*   `Config`: Returns a `Configuration` object containing the state of the variables that minimized the energy.
 
+---
+`stochastic fn sample(dist: D) -> T`
+*   **Description:** Draws a single, independent sample from the given distribution object. If called within a `thermal` block, the sampling process may be influenced by the ambient temperature.
+*   `D`: A type that conforms to `distribution<T, ...>`.
+*   `T`: The underlying type of the distribution (e.g., `float`).
+*   **Example:** `let value: float = sample(my_gaussian_dist);`
 ---
 
 ## 3. Hardware Annotation (Future Feature)

@@ -10,11 +10,13 @@
 #include "thermolang/optimizer/Passes.h"
 #include "thermolang/optimizer/EnergyFunctionOptimizer.h"
 #include "thermolang/optimizer/CircuitTopologyOptimizer.h"
-#include "thermolang/optimizer/ThermalSchedulingOptimizer.h"
 #include "thermolang/optimizer/VarianceTrackingPass.h"
 #include "thermolang/optimizer/ConstantFoldingPass.h"
+#include "thermolang/optimizer/IsingModelPass.h"
+#include "thermolang/codegen/CodeGenerator.h"
+#include <string>
 
-void run(const std::string &source)
+void run(const std::string &source, const std::string &target)
 {
     // Phase 1: Frontend (Lexing, Parsing, Semantic Analysis)
     thermolang::Lexer lexer(source);
@@ -65,12 +67,11 @@ void run(const std::string &source)
         new thermolang::optimizer::ConstantFoldingPass()));
 
     // Domain-specific optimizations
+    opt_manager.add_pass(std::make_unique<thermolang::optimizer::IsingModelPass>());
     opt_manager.add_pass(std::unique_ptr<thermolang::optimizer::IRPass>(
         new thermolang::optimizer::EnergyFunctionPass()));
     opt_manager.add_pass(std::unique_ptr<thermolang::optimizer::IRPass>(
         new thermolang::optimizer::CircuitTopologyPass()));
-    opt_manager.add_pass(std::unique_ptr<thermolang::optimizer::IRPass>(
-        new thermolang::optimizer::ThermalSchedulingPass()));
     opt_manager.add_pass(std::unique_ptr<thermolang::optimizer::IRPass>(
         new thermolang::optimizer::VarianceTrackingPass()));
 
@@ -86,9 +87,23 @@ void run(const std::string &source)
         std::cout << func_ir->toString();
     }
     std::cout << "------------------------------------------\n";
+
+    if (target == "sim")
+    {
+        std::cout << "\n--- Code Generation (Python Simulation) ---\n";
+        thermolang::codegen::SimulationCodeGenerator code_gen;
+        std::string python_code = code_gen.generate(ir_program);
+        std::cout << python_code << std::endl;
+
+        // Optionally, write to file
+        std::ofstream out_file("program_sim.py");
+        out_file << python_code;
+        out_file.close();
+        std::cout << ">>> Simulation code written to program_sim.py" << std::endl;
+    }
 }
 
-void run_file(const std::string &path)
+void run_file(const std::string &path, const std::string &target)
 {
     std::cout << "Compiling: " << path << std::endl;
     std::ifstream file(path);
@@ -99,7 +114,7 @@ void run_file(const std::string &path)
     }
     std::stringstream buffer;
     buffer << file.rdbuf();
-    run(buffer.str());
+    run(buffer.str(), target);
     std::cout << std::endl;
 }
 
@@ -107,13 +122,25 @@ int main(int argc, char *argv[])
 {
     if (argc < 2)
     {
-        std::cout << "ThermoLang Compiler v0.3 - Domain-Specific IR & Optimization" << std::endl;
-        std::cout << "Usage: thermolangc <file>" << std::endl;
+        std::cerr << "ThermoLang Compiler v0.3" << std::endl;
+        std::cerr << "Usage: thermolangc <file> [--target=sim]" << std::endl;
         return 64;
     }
 
-    // For now, let's just run one file
-    run_file(argv[1]);
+    std::string filename = argv[1];
+    std::string target = "ir_only"; // Default target
+
+    if (argc > 2)
+    {
+        std::string target_arg = argv[2];
+        std::string prefix = "--target=";
+        if (target_arg.rfind(prefix, 0) == 0)
+        {
+            target = target_arg.substr(prefix.length());
+        }
+    }
+
+    run_file(filename, target);
 
     return 0;
 }

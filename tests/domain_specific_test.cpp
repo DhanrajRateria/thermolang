@@ -12,7 +12,6 @@
 #include "thermolang/optimizer/Passes.h"
 #include "thermolang/optimizer/EnergyFunctionOptimizer.h"
 #include "thermolang/optimizer/CircuitTopologyOptimizer.h"
-#include "thermolang/optimizer/ThermalSchedulingOptimizer.h"
 #include "thermolang/optimizer/VarianceTrackingPass.h"
 
 // Test fixture for Domain-Specific Optimizations

@@ -9,6 +9,9 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(googletest)
 
+set(EXAMPLES_DIR "${CMAKE_SOURCE_DIR}/examples")
+add_definitions(-DEXAMPLES_DIR="${EXAMPLES_DIR}")
+
 # --- Test Executable ---
 add_executable(run_tests 
     main_test.cpp
@@ -17,6 +20,11 @@ add_executable(run_tests
     optimizer_test.cpp
     domain_specific_test.cpp
     control_flow_test.cpp
+    e2e_test.cpp
+)
+
+target_compile_definitions(run_tests PRIVATE
+    "COMPILER_EXECUTABLE_PATH=\"${CMAKE_BINARY_DIR}/thermolangc\""
 )
 
 # Link the test executable against Google Test and our compiler libraries

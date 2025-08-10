@@ -57,6 +57,7 @@ namespace thermolang::ir
         THERMAL_STEP,
         VARIANCE_TRACK,
         QUADRATIC_FORM,
+        ISING_HAMILTONIAN,
     };
 
     // Base class for all IR instructions.
@@ -217,15 +218,12 @@ namespace thermolang::ir
     struct ThermalAnnealInstr : Instruction
     {
         std::string result_reg;
-        Operand energy_func;
-        Operand initial_temp;
-        Operand cooling_rate;
-        Operand steps;
+        Operand energy_func_reg; // Register holding the energy function
+        Operand schedule_reg;    // Register holding the cooling schedule object
 
-        ThermalAnnealInstr(std::string result, Operand func, Operand temp,
-                           Operand rate, Operand step_count)
-            : Instruction(OpCode::THERMAL_ANNEAL), result_reg(result),
-              energy_func(func), initial_temp(temp), cooling_rate(rate), steps(step_count) {}
+        ThermalAnnealInstr(std::string result, Operand func, Operand schedule)
+            : Instruction(OpCode::THERMAL_ANNEAL), result_reg(std::move(result)),
+              energy_func_reg(std::move(func)), schedule_reg(std::move(schedule)) {}
 
         std::string toString() const override;
     };
@@ -304,6 +302,24 @@ namespace thermolang::ir
         QuadraticFormInstr(std::string result, std::vector<Operand> vars, std::string id)
             : Instruction(OpCode::QUADRATIC_FORM), result_reg(result),
               variables(std::move(vars)), matrix_id(std::move(id)) {}
+
+        std::string toString() const override;
+    };
+
+    struct IsingHamiltonianInstr : Instruction
+    {
+        std::string result_reg;
+        std::vector<Operand> spins;                // Registers holding the spin variables
+        std::vector<std::vector<double>> J_matrix; // Coupling matrix
+        std::vector<double> h_vector;              // External field vector
+
+        IsingHamiltonianInstr(std::string result, std::vector<Operand> s,
+                              std::vector<std::vector<double>> J, std::vector<double> h)
+            : Instruction(OpCode::CREATE_ENERGY_FUNC), // Re-using an appropriate OpCode
+              result_reg(std::move(result)), spins(std::move(s)),
+              J_matrix(std::move(J)), h_vector(std::move(h))
+        {
+        }
 
         std::string toString() const override;
     };

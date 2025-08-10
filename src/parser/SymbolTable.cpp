@@ -59,8 +59,12 @@ namespace thermolang
 
         // thermal fn thermal_anneal(energy_func: energy<float>, initial_temp: float, cooling_rate: float, steps: int) -> float
         auto thermal_anneal_type = std::make_shared<FunctionType>(
-            std::vector<std::shared_ptr<Type>>{single_var_energy_type, Type::float_type(), Type::float_type(), Type::int_type()},
-            Type::float_type());
+            std::vector<std::shared_ptr<Type>>{
+                single_var_energy_type, // Placeholder, type checker will handle specifics
+                Type::float_type(),
+                Type::float_type(),
+                Type::int_type()},
+            Type::float_type()); // Returns a float for now
         define("thermal_anneal", thermal_anneal_type, false, true);
     }
 

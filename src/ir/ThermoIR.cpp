@@ -73,6 +73,8 @@ namespace thermolang::ir
             return "thermal_step";
         case OpCode::VARIANCE_TRACK:
             return "variance_track";
+        case OpCode::ISING_HAMILTONIAN:
+            return "ising_hamiltonian";
         default:
             return "unknown_op";
         }
@@ -149,6 +151,18 @@ namespace thermolang::ir
         return ss.str();
     }
 
+    std::string IsingHamiltonianInstr::toString() const
+    {
+        std::stringstream ss;
+        ss << "    " << result_reg << " = ising_hamiltonian spins=[";
+        for (size_t i = 0; i < spins.size(); ++i)
+        {
+            ss << to_string(spins[i]) << (i == spins.size() - 1 ? "" : ", ");
+        }
+        ss << "], J=[...], h=[...]"; // Keep it concise for IR readability
+        return ss.str();
+    }
+
     // Domain-specific instruction toString implementations
     std::string SampleGaussianInstr::toString() const
     {
@@ -207,9 +221,7 @@ namespace thermolang::ir
 
     std::string ThermalAnnealInstr::toString() const
     {
-        return "    " + result_reg + " = " + to_string(opcode) + " " +
-               to_string(energy_func) + ", " + to_string(initial_temp) + ", " +
-               to_string(cooling_rate) + ", " + to_string(steps);
+        return "    " + result_reg + " = thermal_anneal func=" + to_string(energy_func_reg) + ", schedule=" + to_string(schedule_reg);
     }
 
     std::string SetTemperatureInstr::toString() const

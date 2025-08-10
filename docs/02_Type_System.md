@@ -51,3 +51,15 @@ Use code with caution.
 
 4. Energy Functions: An energy function is a special function type that maps a configuration of variables to a scalar energy value (float). They are the bridge between probabilistic models and the underlying physics.
 E: (T_vars) -> float
+
+## 4. Energy Function Typing
+
+An `energy` function is a special function type with specific constraints to be considered valid for use in thermodynamic operations like `thermal_anneal`.
+
+1.  **Return Type:** An energy function **must** return a `float`. This scalar value represents the total energy of the system for a given configuration.
+2.  **Parameters:** The parameters of an energy function represent the variables of the system (e.g., spins in an Ising model). These parameters should be of a type that can be sampled or manipulated by the hardware, typically `bool` or `float`.
+3.  **Purity:** An energy function should be "pure" in the sense that for the same inputs, it always produces the same output. It should not depend on external state or have side effects.
+
+## 5. New Built-in Type: `Configuration`
+
+The `Configuration` type is a special struct-like type returned by optimization functions like `thermal_anneal`. It acts as a container for the resulting state of the variables that minimized the energy function.

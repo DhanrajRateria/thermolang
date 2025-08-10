@@ -168,6 +168,37 @@ namespace thermolang
 
             return true;
         }
+        if (const FunctionType *other_func = dynamic_cast<const FunctionType *>(&other))
+        {
+            // Check return type: must be float.
+            if (auto return_prim = dynamic_cast<const PrimitiveType *>(&other_func->return_type()))
+            {
+                if (return_prim->get_kind() != PrimitiveType::Kind::FLOAT)
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                return false; // Must return a primitive float
+            }
+
+            // Check if parameter types match the energy function's variable types
+            if (var_types_.size() != other_func->param_types().size())
+            {
+                return false;
+            }
+            for (size_t i = 0; i < var_types_.size(); ++i)
+            {
+                if (!var_types_[i]->is_compatible_with(*other_func->param_types()[i]))
+                {
+                    return false;
+                }
+            }
+            // If all checks pass, it's compatible.
+            return true;
+        }
+        
         return false;
     }
 

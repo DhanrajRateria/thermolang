@@ -274,8 +274,16 @@ namespace thermolang::compiler
 
     void IrGenerator::visit(const VariableExpr &expr)
     {
-        // The result is simply the register assigned to this variable
-        last_expr_result_reg_ = resolve_variable(expr.name.get_lexeme());
+        auto register_opt = resolve_variable(expr.name.get_lexeme());
+
+        if (register_opt.has_value())
+        {
+            last_expr_result_reg_ = *register_opt;
+        }
+        else
+        {
+            last_expr_result_reg_ = expr.name.get_lexeme();
+        }
     }
 
     void IrGenerator::visit(const BinaryExpr &expr)
@@ -300,7 +308,7 @@ namespace thermolang::compiler
             // Return early to skip the general operator switch statement.
             return;
         }
-        
+
         analyze(*expr.left);
         std::string left_reg = last_expr_result_reg_;
 
@@ -444,46 +452,26 @@ namespace thermolang::compiler
                 last_expr_result_reg_ = result_reg;
                 return;
             }
-            else if (callee_name == "thermal_anneal" && expr.arguments.size() >= 1)
+            else if (callee_name == "thermal_anneal" && expr.arguments.size() == 4)
             {
-                // Process the energy function argument
                 analyze(*expr.arguments[0]);
                 std::string energy_func_reg = last_expr_result_reg_;
 
-                // Default values for optional parameters
-                std::string initial_temp_reg = new_register();
-                std::string cooling_rate_reg = new_register();
-                std::string steps_reg = new_register();
+                analyze(*expr.arguments[1]);
+                std::string temp_reg = last_expr_result_reg_;
 
-                add_instruction(std::make_unique<ir::LoadConstInstr>(initial_temp_reg, 1.0));
-                add_instruction(std::make_unique<ir::LoadConstInstr>(cooling_rate_reg, 0.95));
-                add_instruction(std::make_unique<ir::LoadConstInstr>(steps_reg, 1000));
+                analyze(*expr.arguments[2]);
+                std::string rate_reg = last_expr_result_reg_;
 
-                // Override with provided parameters
-                if (expr.arguments.size() > 1)
-                {
-                    analyze(*expr.arguments[1]);
-                    initial_temp_reg = last_expr_result_reg_;
-                }
+                analyze(*expr.arguments[3]);
+                std::string steps_reg = last_expr_result_reg_;
 
-                if (expr.arguments.size() > 2)
-                {
-                    analyze(*expr.arguments[2]);
-                    cooling_rate_reg = last_expr_result_reg_;
-                }
-
-                if (expr.arguments.size() > 3)
-                {
-                    analyze(*expr.arguments[3]);
-                    steps_reg = last_expr_result_reg_;
-                }
-
-                // Create result register
                 std::string result_reg = new_register();
-
-                // Generate specialized instruction
-                add_instruction(std::make_unique<ir::ThermalAnnealInstr>(
-                    result_reg, energy_func_reg, initial_temp_reg, cooling_rate_reg, steps_reg));
+                // This instruction is now a bit of a misnomer, as it doesn't just take a schedule.
+                // For now, we'll pack the args into the existing IR.
+                // We'll create a temporary schedule object in the codegen.
+                add_instruction(std::make_unique<ir::CallInstr>(result_reg, "thermal_anneal",
+                                                                std::vector<ir::Operand>{energy_func_reg, temp_reg, rate_reg, steps_reg}));
 
                 last_expr_result_reg_ = result_reg;
                 return;
@@ -566,7 +554,7 @@ namespace thermolang::compiler
         variable_to_register_map_.back()[name] = reg;
     }
 
-    std::string IrGenerator::resolve_variable(const std::string &name)
+    std::optional<std::string> IrGenerator::resolve_variable(const std::string &name)
     {
         for (auto it = variable_to_register_map_.rbegin(); it != variable_to_register_map_.rend(); ++it)
         {
@@ -575,7 +563,7 @@ namespace thermolang::compiler
                 return it->at(name);
             }
         }
-        throw std::runtime_error("Undeclared variable used in IR generation: " + name);
+        return std::nullopt;
     }
 
     void IrGenerator::generate_energy_function_body(const BlockStmt &body, const std::vector<Parameter> &params)

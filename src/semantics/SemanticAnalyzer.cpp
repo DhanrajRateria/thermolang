@@ -45,7 +45,7 @@ namespace thermolang
 
         // 2. Then, define the variable in the current scope.
         // Note: Type will be set later by the TypeChecker
-        if (!symbols_.define(stmt.name.get_lexeme()))
+        if (symbols_.is_defined_in_current_scope(stmt.name.get_lexeme()))
         {
             std::cerr << "Semantic Error: Variable '" << stmt.name.get_lexeme()
                       << "' already declared in this scope." << std::endl;

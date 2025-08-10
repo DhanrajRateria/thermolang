@@ -68,7 +68,7 @@ namespace thermolang::compiler
         void enter_scope();
         void exit_scope();
         void define_variable(const std::string &name, const std::string &reg);
-        std::string resolve_variable(const std::string &name);
+        std::optional<std::string> resolve_variable(const std::string &name);
 
         // State for expression evaluation
         std::string last_expr_result_reg_;

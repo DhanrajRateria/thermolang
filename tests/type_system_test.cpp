@@ -89,13 +89,16 @@ TEST_F(TypeSystemTest, DistributionType)
     EXPECT_TRUE(check_types(source));
 }
 
-TEST_F(TypeSystemTest, EnergyFunction)
+TEST_F(TypeSystemTest, EnergyFunctionIsPassedToAnneal)
 {
     std::string source = R"(
         energy fn quadratic(x: float, y: float) -> float {
             return x*x + y*y;
         }
-        let min_energy: float = quadratic(1.0, 2.0);
+
+        fn main() -> void {
+            let result = thermal_anneal(quadratic, 10.0, 0.9, 100);
+        }
     )";
     EXPECT_TRUE(check_types(source));
 }
@@ -108,6 +111,45 @@ TEST_F(TypeSystemTest, CircuitType)
         fn get_circuit() -> MyCircuit {
             // In a real implementation, we would create a circuit
             return get_circuit(); // Placeholder to avoid type error
+        }
+    )";
+    EXPECT_TRUE(check_types(source));
+}
+
+TEST_F(TypeSystemTest, FailsOnInvalidEnergyFunctionReturnType)
+{
+    std::string source = R"(
+        energy fn bad_energy(x: float) -> int { // Should return float
+            return 1;
+        }
+    )";
+    EXPECT_FALSE(check_types(source));
+}
+
+TEST_F(TypeSystemTest, FailsOnAnnealWithNonEnergyFunction)
+{
+    std::string source = R"(
+        fn not_energy(x: float) -> float {
+            return x * x;
+        }
+        fn main() {
+            let result = thermal_anneal(not_energy, 1.0, 0.9, 100);
+        }
+    )";
+    // This requires thermal_anneal to be in the symbol table with a proper
+    // energy function type, which we'll add.
+    symbols->load_builtins(); // Make sure built-ins are loaded
+    EXPECT_FALSE(check_types(source));
+}
+
+TEST_F(TypeSystemTest, AcceptsValidCustomTypes)
+{
+    std::string source = R"(
+        type MyGauss = distribution<float, variance=1.0>;
+        type MyCircuit = circuit<nodes=8, couplings="full">;
+
+        fn produce_dist() -> MyGauss {
+            return sample_gaussian(0.0, 1.0);
         }
     )";
     EXPECT_TRUE(check_types(source));

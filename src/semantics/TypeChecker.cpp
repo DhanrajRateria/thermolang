@@ -112,7 +112,9 @@ namespace thermolang
     {
     public:
         PrePassVisitor(SymbolTable &symbols, TypeResolver &resolver)
-            : symbols_(symbols), resolver_(resolver), current_pass_(PASS_TYPES) {}
+            : symbols_(symbols), resolver_(resolver), current_pass_(PASS_TYPES), had_error_(false) {}
+
+        bool had_error() const { return had_error_; }
 
         void run(const std::vector<std::unique_ptr<Stmt>> &statements)
         {
@@ -188,6 +190,7 @@ namespace thermolang
         void visit(const ParallelStmt &stmt) override { stmt.block->accept(*this); }
 
     private:
+        bool had_error_;
         enum PassType
         {
             PASS_TYPES,
@@ -207,8 +210,31 @@ namespace thermolang
                 param_types.push_back(resolver_.resolve(*param.type));
             }
             auto return_type = resolver_.resolve(*stmt.return_type);
-            auto func_type = std::make_shared<FunctionType>(std::move(param_types), return_type);
-            symbols_.define(stmt.name.get_lexeme(), func_type, false, true);
+            std::shared_ptr<Type> final_func_type;
+            if (is_energy)
+            {
+                final_func_type = std::make_shared<EnergyType>(std::move(param_types));
+                // We also check here if the declared return type is float, a core rule for energy funcs
+                if (auto rt_prim = std::dynamic_pointer_cast<PrimitiveType>(return_type))
+                {
+                    if (rt_prim->get_kind() != PrimitiveType::Kind::FLOAT)
+                    {
+                        std::cerr << "Type Error: Energy function '" << stmt.name.get_lexeme() << "' must be declared to return 'float'." << std::endl;
+                        had_error_ = true; // Set the flag
+                    }
+                }
+                else
+                {
+                    std::cerr << "Type Error: Energy function '" << stmt.name.get_lexeme() << "' must return a primitive 'float' type." << std::endl;
+                    had_error_ = true; // Set the flag
+                }
+            }
+            else
+            {
+                final_func_type = std::make_shared<FunctionType>(std::move(param_types), return_type);
+            }
+
+            symbols_.define(stmt.name.get_lexeme(), final_func_type, false, true);
         }
     };
 
@@ -224,6 +250,11 @@ namespace thermolang
         // Run the new pre-pass to register all user-defined types and functions
         PrePassVisitor pre_pass(symbols_, resolver_);
         pre_pass.run(statements);
+
+        if (pre_pass.had_error())
+        {
+            return false;
+        }
 
         // Main pass: do full type checking on everything
         for (const auto &stmt : statements)
@@ -390,6 +421,7 @@ namespace thermolang
             std::cerr << "Type Error: Cannot determine type for variable '"
                       << stmt.name.get_lexeme() << "'" << std::endl;
             had_error_ = true;
+            symbols_.define(stmt.name.get_lexeme(), Type::void_type());
             return;
         }
 
@@ -401,7 +433,13 @@ namespace thermolang
         }
 
         // Define variable in symbol table with its type
-        symbols_.define(stmt.name.get_lexeme(), var_type);
+        if (!symbols_.define(stmt.name.get_lexeme(), var_type))
+        {
+            // This case should be caught by the semantic analyzer, but we check again for safety.
+            std::cerr << "Type Error: Variable '" << stmt.name.get_lexeme()
+                      << "' already declared in this scope." << std::endl;
+            had_error_ = true;
+        }
     }
 
     void TypeChecker::visit(const ExprStmt &stmt)
@@ -559,6 +597,31 @@ namespace thermolang
     void TypeChecker::visit(const EnergyStmt &stmt)
     {
         // The function should already be pre-registered
+        auto symbol_opt = symbols_.get(stmt.function->name.get_lexeme());
+        if (symbol_opt && symbol_opt->type)
+        {
+            if (auto func_type = std::dynamic_pointer_cast<const FunctionType>(symbol_opt->type))
+            {
+                // THE FIX: Enforce that the return type MUST be a float.
+                if (auto return_prim = dynamic_cast<const PrimitiveType *>(&func_type->return_type()))
+                {
+                    if (return_prim->get_kind() != PrimitiveType::Kind::FLOAT)
+                    {
+                        std::cerr << "Type Error: Energy function '" << stmt.function->name.get_lexeme()
+                                  << "' must return type 'float', but returns '" << return_prim->to_string()
+                                  << "'." << std::endl;
+                        had_error_ = true;
+                    }
+                }
+                else
+                {
+                    std::cerr << "Type Error: Energy function '" << stmt.function->name.get_lexeme()
+                              << "' must return a primitive 'float' type." << std::endl;
+                    had_error_ = true;
+                }
+            }
+        }
+        // Then, continue to check the function's body as before.
         check(*stmt.function);
     }
 
@@ -774,6 +837,45 @@ namespace thermolang
     {
         // Check callee
         check(*expr.callee);
+
+        if (auto *var_expr = dynamic_cast<const VariableExpr *>(expr.callee.get()))
+        {
+            if (var_expr->name.get_lexeme() == "thermal_anneal")
+            {
+                // Rule 1: Must have exactly 4 arguments
+                if (expr.arguments.size() != 4)
+                {
+                    std::cerr << "Type Error: 'thermal_anneal' expects 4 arguments (energy_func, initial_temp, cooling_rate, steps), but got "
+                              << expr.arguments.size() << "." << std::endl;
+                    had_error_ = true;
+                    expr.type = Type::void_type(); // Set error type and exit
+                    return;
+                }
+
+                // Rule 2: First argument must be *any* EnergyType
+                check(*expr.arguments[0]); // Analyze the argument
+                if (!dynamic_cast<const EnergyType *>(expr.arguments[0]->type.get()))
+                {
+                    std::cerr << "Type Error: Argument 1 of 'thermal_anneal' must be an energy function, but got '"
+                              << expr.arguments[0]->type->to_string() << "'." << std::endl;
+                    had_error_ = true;
+                }
+
+                // Rule 3: Check the types of the schedule parameters
+                check(*expr.arguments[1]); // initial_temp
+                check_compatibility(*Type::float_type(), *expr.arguments[1]->type, "Argument 2 of 'thermal_anneal' (initial_temp)");
+
+                check(*expr.arguments[2]); // cooling_rate
+                check_compatibility(*Type::float_type(), *expr.arguments[2]->type, "Argument 3 of 'thermal_anneal' (cooling_rate)");
+
+                check(*expr.arguments[3]); // steps
+                check_compatibility(*Type::int_type(), *expr.arguments[3]->type, "Argument 4 of 'thermal_anneal' (steps)");
+
+                // The result of annealing is currently a placeholder float. This can be refined later.
+                expr.type = Type::float_type();
+                return; // Exit, as we have handled this special call.
+            }
+        }
 
         // Check arguments
         for (const auto &arg : expr.arguments)
