@@ -16,6 +16,7 @@ add_executable(run_tests
     ir_generator_test.cpp
     optimizer_test.cpp
     domain_specific_test.cpp
+    control_flow_test.cpp
 )
 
 # Link the test executable against Google Test and our compiler libraries

@@ -1,0 +1,18 @@
+// examples/4_domain_specific/2_first_class_energy.thermo
+type EnergyFunc = function<float -> float>;
+
+energy fn quadratic(x: float) -> float {
+    return x*x;
+}
+
+// This function takes an energy function as an argument.
+fn run_minimization(f: EnergyFunc, start_point: float) -> float {
+    let result = minimize_energy(f, start_point);
+    return result;
+}
+
+fn main() -> float {
+    // Call run_minimization, passing the 'quadratic' function as a value.
+    let final_energy = run_minimization(quadratic, 10.0);
+    return final_energy;
+}

@@ -186,6 +186,64 @@ namespace thermolang::compiler
         }
     }
 
+    void IrGenerator::visit(const IfStmt &stmt)
+    {
+        // Generate code for the condition
+        analyze(*stmt.condition);
+        std::string cond_reg = last_expr_result_reg_;
+
+        // Create labels for the branches
+        std::string then_label = new_label();
+        std::string else_label = new_label();
+        std::string merge_label = new_label();
+
+        // The 'else' label is used if an else branch exists, otherwise we jump straight to merge.
+        std::string false_target = stmt.else_branch ? else_label : merge_label;
+
+        add_instruction(std::make_unique<ir::BranchInstr>(cond_reg, then_label, false_target));
+
+        // Emit the 'then' block
+        add_basic_block(std::make_unique<ir::BasicBlock>(then_label));
+        analyze(*stmt.then_branch);
+        add_instruction(std::make_unique<ir::JumpInstr>(merge_label)); // Jump to merge after 'then'
+
+        // Emit the 'else' block if it exists
+        if (stmt.else_branch)
+        {
+            add_basic_block(std::make_unique<ir::BasicBlock>(else_label));
+            analyze(*stmt.else_branch);
+            add_instruction(std::make_unique<ir::JumpInstr>(merge_label)); // Jump to merge after 'else'
+        }
+
+        // Emit the merge block
+        add_basic_block(std::make_unique<ir::BasicBlock>(merge_label));
+    }
+
+    void IrGenerator::visit(const WhileStmt &stmt)
+    {
+        // Create labels for the loop
+        std::string cond_label = new_label();
+        std::string body_label = new_label();
+        std::string exit_label = new_label();
+
+        // Jump to the condition check first
+        add_instruction(std::make_unique<ir::JumpInstr>(cond_label));
+
+        // Emit the condition block
+        add_basic_block(std::make_unique<ir::BasicBlock>(cond_label));
+        analyze(*stmt.condition);
+        std::string cond_reg = last_expr_result_reg_;
+        add_instruction(std::make_unique<ir::BranchInstr>(cond_reg, body_label, exit_label));
+
+        // Emit the loop body block
+        add_basic_block(std::make_unique<ir::BasicBlock>(body_label));
+        analyze(*stmt.body);
+        add_instruction(std::make_unique<ir::JumpInstr>(cond_label)); // Loop back to the condition
+
+        // Emit the exit block
+        add_basic_block(std::make_unique<ir::BasicBlock>(exit_label));
+    }
+
     // --- Expression Visitors ---
 
     void IrGenerator::visit(const LiteralExpr &expr)
@@ -243,6 +301,24 @@ namespace thermolang::compiler
             break;
         case TokenType::SLASH:
             opcode = ir::OpCode::DIV;
+            break;
+        case TokenType::EQUAL_EQUAL:
+            opcode = ir::OpCode::EQUAL;
+            break;
+        case TokenType::BANG_EQUAL:
+            opcode = ir::OpCode::NOT_EQUAL;
+            break;
+        case TokenType::LESS:
+            opcode = ir::OpCode::LESS;
+            break;
+        case TokenType::LESS_EQUAL:
+            opcode = ir::OpCode::LESS_EQUAL;
+            break;
+        case TokenType::GREATER:
+            opcode = ir::OpCode::GREATER;
+            break;
+        case TokenType::GREATER_EQUAL:
+            opcode = ir::OpCode::GREATER_EQUAL;
             break;
         default:
             throw std::runtime_error("Unsupported binary operator for IR generation");

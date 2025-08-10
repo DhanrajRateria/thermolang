@@ -97,6 +97,30 @@ namespace thermolang
         symbols_.exit_scope();
     }
 
+    void SemanticAnalyzer::visit(const IfStmt &stmt)
+    {
+        // Analyze the condition expression
+        stmt.condition->accept(*this);
+
+        // Analyze the then branch
+        stmt.then_branch->accept(*this);
+
+        // If there's an else branch, analyze that too
+        if (stmt.else_branch)
+        {
+            stmt.else_branch->accept(*this);
+        }
+    }
+
+    void SemanticAnalyzer::visit(const WhileStmt &stmt)
+    {
+        // Analyze the condition expression
+        stmt.condition->accept(*this);
+
+        // Analyze the body
+        stmt.body->accept(*this);
+    }
+
     void SemanticAnalyzer::visit(const BlockStmt &stmt)
     {
         symbols_.enter_scope();

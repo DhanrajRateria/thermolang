@@ -1,0 +1,8 @@
+// examples/2_features/7_if_else.thermo
+fn decide(condition: bool) -> int {
+    if (condition) {
+        return 1;
+    } else {
+        return 0;
+    }
+}

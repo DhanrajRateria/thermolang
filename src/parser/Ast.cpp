@@ -68,6 +68,8 @@ namespace thermolang
     void ExprStmt::accept(StmtVisitor &visitor) const { visitor.visit(*this); }
     void LetStmt::accept(StmtVisitor &visitor) const { visitor.visit(*this); }
     void ReturnStmt::accept(StmtVisitor &visitor) const { visitor.visit(*this); }
+    void IfStmt::accept(StmtVisitor &visitor) const { visitor.visit(*this); }
+    void WhileStmt::accept(StmtVisitor &visitor) const { visitor.visit(*this); }
     void StochasticStmt::accept(StmtVisitor &visitor) const { visitor.visit(*this); }
     void EnergyStmt::accept(StmtVisitor &visitor) const { visitor.visit(*this); }
     void ThermalStmt::accept(StmtVisitor &visitor) const { visitor.visit(*this); }

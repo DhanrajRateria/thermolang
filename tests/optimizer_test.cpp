@@ -22,6 +22,43 @@
 class OptimizerTest : public ::testing::Test
 {
 protected:
+    std::string run_pipeline_and_optimize(const std::string &source)
+    {
+        thermolang::Lexer lexer(source);
+        thermolang::Parser parser(lexer);
+        auto ast = parser.parse();
+        if (parser.had_error())
+            return "Parser Error";
+
+        thermolang::SymbolTable symbols;
+        thermolang::SemanticAnalyzer semantic_analyzer(symbols);
+        if (!semantic_analyzer.analyze(ast))
+            return "Semantic Error";
+
+        thermolang::TypeChecker type_checker(symbols);
+        if (!type_checker.check(ast))
+            return "Type Error";
+
+        thermolang::compiler::IrGenerator ir_gen;
+        auto ir_program = ir_gen.generate(ast);
+
+        thermolang::optimizer::OptimizationManager opt_manager;
+        opt_manager.add_pass(std::make_unique<thermolang::optimizer::EnergyFunctionPass>());
+        opt_manager.add_pass(std::make_unique<thermolang::optimizer::ThermalSchedulingPass>());
+        opt_manager.add_pass(std::make_unique<thermolang::optimizer::ConstantFoldingPass>());
+
+        for (auto &func_ir : ir_program)
+        {
+            opt_manager.run(*func_ir);
+        }
+
+        std::stringstream ss;
+        for (const auto &func : ir_program)
+        {
+            ss << func->toString();
+        }
+        return ss.str();
+    }
     // Helper to get the IR for a single function
     std::unique_ptr<thermolang::ir::FunctionIR> get_function_ir(const std::string &source, const std::string &func_name)
     {
@@ -119,4 +156,48 @@ TEST_F(OptimizerTest, ConstantFoldingPass)
     ASSERT_TRUE(std::holds_alternative<int64_t>(final_load->value));
 
     EXPECT_EQ(std::get<int64_t>(final_load->value), 60);
+}
+
+TEST_F(OptimizerTest, EnergyFunctionOptimization)
+{
+    std::string source = R"(
+        energy fn quadratic_energy(x: float, y: float) -> float {
+            let x_sq = x * x;
+            let y_sq = y * y;
+            return x_sq + y_sq;
+        }
+    )";
+    std::string optimized_ir = run_pipeline_and_optimize(source);
+
+    // After optimization, the separate mul and add instructions should be replaced
+    // by a single, high-level quadratic_form instruction.
+    EXPECT_EQ(optimized_ir.find("mul"), std::string::npos) << "IR should not contain 'mul' after optimization.";
+    EXPECT_EQ(optimized_ir.find("add"), std::string::npos) << "IR should not contain 'add' after optimization.";
+    EXPECT_NE(optimized_ir.find("quadratic_form"), std::string::npos) << "IR should contain 'quadratic_form' instruction.";
+}
+
+TEST_F(OptimizerTest, ThermalScheduleUnrolling)
+{
+    std::string source = R"(
+        fn run_constant_anneal() -> float {
+            energy fn my_energy_func(x: float) -> float { return x; }
+            let result = thermal_anneal(my_energy_func, 1.0, 0.9, 5);
+            return result;
+        }
+    )";
+    std::string optimized_ir = run_pipeline_and_optimize(source);
+
+    // The optimizer should unroll the thermal_anneal call into a series of explicit steps.
+    EXPECT_EQ(optimized_ir.find("thermal_anneal"), std::string::npos) << "IR should not contain 'thermal_anneal' after optimization.";
+    EXPECT_NE(optimized_ir.find("thermal_step"), std::string::npos) << "IR should contain 'thermal_step' instructions.";
+
+    // Count occurrences of thermal_step to ensure it was unrolled correctly (5 steps)
+    size_t step_count = 0;
+    size_t pos = optimized_ir.find("thermal_step", 0);
+    while (pos != std::string::npos)
+    {
+        step_count++;
+        pos = optimized_ir.find("thermal_step", pos + 1);
+    }
+    EXPECT_EQ(step_count, 5) << "The anneal should have been unrolled into 5 steps.";
 }

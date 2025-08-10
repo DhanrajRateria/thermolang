@@ -27,6 +27,8 @@ namespace thermolang
         void visit(const FunctionStmt &stmt) override;
         void visit(const BlockStmt &stmt) override;
         void visit(const ReturnStmt &stmt) override;
+        void visit(const IfStmt &stmt) override;
+        void visit(const WhileStmt &stmt) override;
 
         // Domain-specific constructs
         void visit(const StochasticStmt &stmt) override;

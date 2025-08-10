@@ -23,7 +23,7 @@ std::string to_string(TokenType type) {
         "PLUS", "MINUS", "STAR", "SLASH",
         "EQUAL", "EQUAL_EQUAL", "BANG", "BANG_EQUAL",
         "LESS", "LESS_EQUAL", "GREATER", "GREATER_EQUAL",
-        "ARROW", "FAT_ARROW",
+        "ARROW", "FAT_ARROW","PIPE_PIPE", "AMPERSAND_AMPERSAND",
         "LPAREN", "RPAREN", "LBRACE", "RBRACE", "LBRACKET", "RBRACKET",
         "COMMA", "COLON", "SEMICOLON", "DOT",
         "AT",

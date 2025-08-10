@@ -173,6 +173,48 @@ namespace thermolang
         return Parameter(name, std::move(type));
     }
 
+    std::unique_ptr<Stmt> Parser::statement()
+    {
+        if (match({TokenType::IF}))
+            return if_statement();
+        if (match({TokenType::WHILE}))
+            return while_statement();
+        if (match({TokenType::LBRACE}))
+            return block_statement();
+        if (match({TokenType::RETURN}))
+            return return_statement();
+        if (match({TokenType::THERMAL}))
+            return thermal_statement();
+        if (match({TokenType::PARALLEL}))
+            return parallel_statement();
+        return expression_statement();
+    }
+
+    std::unique_ptr<Stmt> Parser::if_statement()
+    {
+        consume(TokenType::LPAREN, "Expect '(' after 'if'.");
+        auto condition = expression();
+        consume(TokenType::RPAREN, "Expect ')' after if condition.");
+
+        auto then_branch = statement();
+        std::unique_ptr<Stmt> else_branch = nullptr;
+        if (match({TokenType::ELSE}))
+        {
+            else_branch = statement();
+        }
+
+        return std::make_unique<IfStmt>(std::move(condition), std::move(then_branch), std::move(else_branch));
+    }
+
+    std::unique_ptr<Stmt> Parser::while_statement()
+    {
+        consume(TokenType::LPAREN, "Expect '(' after 'while'.");
+        auto condition = expression();
+        consume(TokenType::RPAREN, "Expect ')' after while condition.");
+        auto body = statement();
+        return std::make_unique<WhileStmt>(std::move(condition), std::move(body));
+    }
+
     std::vector<Parameter> Parser::parse_parameters()
     {
         std::vector<Parameter> parameters;
@@ -541,20 +583,6 @@ namespace thermolang
         return std::make_unique<CircuitTypeExpr>(nodes, couplings);
     }
 
-    std::unique_ptr<Stmt> Parser::statement()
-    {
-        if (match({TokenType::LBRACE}))
-            return block_statement();
-        if (match({TokenType::RETURN}))
-            return return_statement();
-        if (match({TokenType::THERMAL}))
-            return thermal_statement();
-        if (match({TokenType::PARALLEL}))
-            return parallel_statement();
-        // In the future, add if_statement, while_statement, etc. here
-        return expression_statement();
-    }
-
     std::unique_ptr<Stmt> Parser::return_statement()
     {
         Token keyword = previous();
@@ -623,6 +651,54 @@ namespace thermolang
             error("Invalid assignment target.");
         }
 
+        return expr;
+    }
+
+    std::unique_ptr<Expr> Parser::logical_or()
+    {
+        auto expr = logical_and();
+        while (match({TokenType::PIPE_PIPE}))
+        { // Assuming you add '||' to your lexer
+            Token op = previous();
+            auto right = logical_and();
+            expr = std::make_unique<BinaryExpr>(std::move(expr), op, std::move(right));
+        }
+        return expr;
+    }
+
+    std::unique_ptr<Expr> Parser::logical_and()
+    {
+        auto expr = equality();
+        while (match({TokenType::AMPERSAND_AMPERSAND}))
+        { // Assuming you add '&&' to your lexer
+            Token op = previous();
+            auto right = equality();
+            expr = std::make_unique<BinaryExpr>(std::move(expr), op, std::move(right));
+        }
+        return expr;
+    }
+
+    std::unique_ptr<Expr> Parser::equality()
+    {
+        auto expr = comparison();
+        while (match({TokenType::BANG_EQUAL, TokenType::EQUAL_EQUAL}))
+        {
+            Token op = previous();
+            auto right = comparison();
+            expr = std::make_unique<BinaryExpr>(std::move(expr), op, std::move(right));
+        }
+        return expr;
+    }
+
+    std::unique_ptr<Expr> Parser::comparison()
+    {
+        auto expr = term();
+        while (match({TokenType::GREATER, TokenType::GREATER_EQUAL, TokenType::LESS, TokenType::LESS_EQUAL}))
+        {
+            Token op = previous();
+            auto right = term();
+            expr = std::make_unique<BinaryExpr>(std::move(expr), op, std::move(right));
+        }
         return expr;
     }
 

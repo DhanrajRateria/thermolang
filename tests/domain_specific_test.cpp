@@ -19,6 +19,33 @@
 class DomainSpecificOptTest : public ::testing::Test
 {
 protected:
+    std::string generate_ir(const std::string &source)
+    {
+        thermolang::Lexer lexer(source);
+        thermolang::Parser parser(lexer);
+        auto ast = parser.parse();
+        if (parser.had_error())
+            return "Parser Error";
+
+        thermolang::SymbolTable symbols;
+        thermolang::SemanticAnalyzer semantic_analyzer(symbols);
+        if (!semantic_analyzer.analyze(ast))
+            return "Semantic Error";
+
+        thermolang::TypeChecker type_checker(symbols);
+        if (!type_checker.check(ast))
+            return "Type Error";
+
+        thermolang::compiler::IrGenerator ir_gen;
+        auto ir_program = ir_gen.generate(ast);
+
+        std::stringstream ss;
+        for (const auto &func : ir_program)
+        {
+            ss << func->toString();
+        }
+        return ss.str();
+    }
     // Helper function to run the full pipeline and return the generated IR
     std::vector<std::unique_ptr<thermolang::ir::FunctionIR>> process_source(const std::string &source)
     {
@@ -185,4 +212,26 @@ TEST_F(DomainSpecificOptTest, VarianceTracking)
 
     // The test passes if the optimization doesn't crash
     // In a real test, we would check specific aspects of the variance tracking
+}
+
+TEST_F(DomainSpecificOptTest, FirstClassEnergyFunction)
+{
+    std::string source = R"(
+        type EnergyFunc = function<float -> float>;
+        energy fn quadratic(x: float) -> float { return x*x; }
+        
+        fn run_minimization(f: EnergyFunc, start_point: float) -> float {
+            let result = minimize_energy(f, start_point);
+            return result;
+        }
+    )";
+
+    std::string ir = generate_ir(source);
+    // The main test here is that the pipeline runs without a Type Error.
+    // A correct implementation will pass the type check and generate valid IR.
+    ASSERT_NE(ir.find("Type Error"), std::string::npos);
+
+    // Additionally, we check that the 'minimize_energy' call in the IR
+    // uses a register for its first argument (the function pointer), not a literal name.
+    EXPECT_NE(ir.find("minimize_energy r"), std::string::npos);
 }

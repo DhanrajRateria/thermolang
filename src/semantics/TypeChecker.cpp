@@ -359,6 +359,65 @@ namespace thermolang
         current_function_return_type_ = previous_return_type;
     }
 
+    void TypeChecker::visit(const IfStmt &stmt)
+    {
+        // Type check condition - should be boolean
+        check(*stmt.condition);
+
+        auto condition_type = resolve_type(stmt.condition);
+        if (condition_type && !is_boolean_type(*condition_type))
+        {
+            report_error("If condition must be a boolean expression.");
+        }
+
+        // Type check the then branch
+        check(*stmt.then_branch);
+
+        // If there's an else branch, check that too
+        if (stmt.else_branch)
+        {
+            check(*stmt.else_branch);
+        }
+    }
+
+    void TypeChecker::visit(const WhileStmt &stmt)
+    {
+        // Type check condition - should be boolean
+        check(*stmt.condition);
+
+        auto condition_type = resolve_type(stmt.condition);
+        if (condition_type && !is_boolean_type(*condition_type))
+        {
+            report_error("While loop condition must be a boolean expression.");
+        }
+
+        // Type check the body
+        check(*stmt.body);
+    }
+
+    std::shared_ptr<Type> TypeChecker::resolve_type(const std::unique_ptr<Expr> &expr)
+    {
+        if (!expr->type)
+        {
+            return Type::void_type(); // Assuming this returns a shared_ptr<Type>
+        }
+        return expr->type; // This already seems to be a shared_ptr<Type>
+    }
+
+    // Helper method to check if a type is boolean
+    bool TypeChecker::is_boolean_type(const Type &type)
+    {
+        const PrimitiveType *prim_type = dynamic_cast<const PrimitiveType *>(&type);
+        return prim_type && prim_type->get_kind() == PrimitiveType::Kind::BOOL;
+    }
+
+    // Helper method for error reporting
+    void TypeChecker::report_error(const std::string &message)
+    {
+        std::cerr << "Type Error: " << message << std::endl;
+        had_error_ = true;
+    }
+
     void TypeChecker::visit(const ReturnStmt &stmt)
     {
         // If no current function, that's an error

@@ -28,6 +28,14 @@ namespace thermolang::ir
         MUL,
         DIV,
 
+        // Comparison Operations
+        EQUAL, // Equal
+        NOT_EQUAL,
+        LESS,
+        LESS_EQUAL,
+        GREATER,
+        GREATER_EQUAL,
+
         // Control Flow
         JUMP,
         BRANCH, // Conditional branch
@@ -48,6 +56,7 @@ namespace thermolang::ir
         PARALLEL_FOR,
         THERMAL_STEP,
         VARIANCE_TRACK,
+        QUADRATIC_FORM,
     };
 
     // Base class for all IR instructions.
@@ -82,6 +91,29 @@ namespace thermolang::ir
 
         LoadConstInstr(std::string result, Operand val)
             : Instruction(OpCode::LOAD_CONST), result_reg(result), value(val) {}
+
+        std::string toString() const override;
+    };
+
+    struct JumpInstr : Instruction
+    {
+        std::string target_label;
+
+        JumpInstr(std::string label)
+            : Instruction(OpCode::JUMP), target_label(std::move(label)) {}
+
+        std::string toString() const override;
+    };
+
+    struct BranchInstr : Instruction
+    {
+        Operand condition_reg;
+        std::string true_label;
+        std::string false_label;
+
+        BranchInstr(Operand cond, std::string true_lbl, std::string false_lbl)
+            : Instruction(OpCode::BRANCH), condition_reg(cond),
+              true_label(std::move(true_lbl)), false_label(std::move(false_lbl)) {}
 
         std::string toString() const override;
     };
@@ -257,6 +289,21 @@ namespace thermolang::ir
         VarianceTrackInstr(std::string result, Operand val, Operand var)
             : Instruction(OpCode::VARIANCE_TRACK), result_reg(result),
               value(val), variance(var) {}
+
+        std::string toString() const override;
+    };
+
+    struct QuadraticFormInstr : Instruction
+    {
+        std::string result_reg;
+        std::vector<Operand> variables;
+        // In a real scenario, this might be a matrix. For this IR,
+        // we'll point to a data structure holding the coefficients.
+        std::string matrix_id;
+
+        QuadraticFormInstr(std::string result, std::vector<Operand> vars, std::string id)
+            : Instruction(OpCode::QUADRATIC_FORM), result_reg(result),
+              variables(std::move(vars)), matrix_id(std::move(id)) {}
 
         std::string toString() const override;
     };

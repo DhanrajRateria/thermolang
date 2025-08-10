@@ -27,6 +27,10 @@ namespace thermolang::compiler
         void visit(const EnergyStmt &stmt) override;
         void visit(const ThermalStmt &stmt) override;
         void visit(const ParallelStmt &stmt) override;
+        
+        // Statements
+        void visit(const IfStmt &stmt) override;
+        void visit(const WhileStmt &stmt) override;
 
         // Expressions
         void visit(const BinaryExpr &expr) override;

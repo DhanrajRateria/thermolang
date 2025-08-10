@@ -9,32 +9,61 @@ namespace thermolang::optimizer
 
     bool ThermalSchedulingPass::run(ir::FunctionIR &function_ir)
     {
-        bool cooling_modified = false;
-        bool coordination_modified = false;
-        bool adaptive_modified = false;
+        bool modified = false;
 
-        std::cout << "Running thermal scheduling optimization on '" << function_ir.name << "'" << std::endl;
-
-        // Optimize cooling schedules - only set flag if changes are made
-        if (optimize_cooling_schedule(function_ir))
+        for (auto &block : function_ir.basic_blocks)
         {
-            cooling_modified = true;
-        }
+            // We need to iterate carefully as we'll be modifying the instruction list.
+            for (auto it = block->instructions.begin(); it != block->instructions.end();)
+            {
+                if (auto *anneal = dynamic_cast<ir::ThermalAnnealInstr *>(it->get()))
+                {
+                    // Check if all parameters are compile-time constants.
+                    auto temp_opt = std::get_if<double>(&anneal->initial_temp);
+                    auto rate_opt = std::get_if<double>(&anneal->cooling_rate);
+                    auto steps_opt = std::get_if<int64_t>(&anneal->steps);
 
-        // Coordinate temperature across SPUs - only set flag if changes are made
-        if (coordinate_distributed_temperature(function_ir))
-        {
-            coordination_modified = true;
-        }
+                    if (temp_opt && rate_opt && steps_opt)
+                    {
+                        std::cout << "  Optimizing thermal_anneal instruction by unrolling." << std::endl;
 
-        // Generate adaptive control - only set flag if changes are made
-        if (generate_adaptive_control(function_ir))
-        {
-            adaptive_modified = true;
-        }
+                        // --- Generate the new sequence of IR instructions ---
+                        std::vector<std::unique_ptr<ir::Instruction>> new_instrs;
 
-        // Return true only if at least one optimization actually modified the IR
-        return cooling_modified || coordination_modified || adaptive_modified;
+                        double current_temp = *temp_opt;
+                        int64_t num_steps = *steps_opt;
+                        std::string state_reg = "r_anneal_state"; // A conceptual register for state
+
+                        for (int i = 0; i < num_steps; ++i)
+                        {
+                            // 1. Set the temperature for this step.
+                            new_instrs.push_back(std::make_unique<ir::SetTemperatureInstr>(current_temp));
+
+                            // 2. Perform one step of thermodynamic computation.
+                            // The result of the step would update the state.
+                            std::string next_state_reg = "r_anneal_state_" + std::to_string(i);
+                            new_instrs.push_back(std::make_unique<ir::ThermalStepInstr>(next_state_reg, state_reg, current_temp));
+                            state_reg = next_state_reg; // Update state for next iteration
+
+                            // 3. Update temperature for the next iteration (exponential cooling)
+                            current_temp *= *rate_opt;
+                        }
+
+                        // The final result of the anneal is the last state.
+                        new_instrs.push_back(std::make_unique<ir::AssignInstr>(anneal->result_reg, state_reg));
+
+                        // --- Replace the old instruction with the new sequence ---
+                        it = block->instructions.erase(it); // Erase the original anneal instruction
+                        it = block->instructions.insert(it, std::make_move_iterator(new_instrs.begin()), std::make_move_iterator(new_instrs.end()));
+
+                        modified = true;
+                        continue; // Continue to the next instruction
+                    }
+                }
+                ++it;
+            }
+        }
+        return modified;
     }
 
     bool ThermalSchedulingPass::optimize_cooling_schedule(ir::FunctionIR &function_ir)

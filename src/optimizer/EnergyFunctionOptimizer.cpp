@@ -1,6 +1,7 @@
 #include "thermolang/optimizer/EnergyFunctionOptimizer.h"
 #include <iostream>
 #include <cmath>
+#include <map>
 #include <algorithm>
 
 namespace thermolang::optimizer
@@ -8,55 +9,107 @@ namespace thermolang::optimizer
 
     bool EnergyFunctionPass::run(ir::FunctionIR &function_ir)
     {
-        bool modified = false;
-
-        // Only process functions with energy expressions
-        if (function_ir.energy_expressions.empty())
+        if (!function_ir.is_energy_function)
         {
             return false;
         }
 
+        bool modified = false;
+
         std::cout << "Running energy function optimization on '" << function_ir.name << "'" << std::endl;
 
-        // Optimization tracking flags - set to true ONLY when actual changes are made
-        bool made_quadratic_simplifications = false;
-        bool made_dissipation_optimizations = false;
+        // In this implementation, we will look for simple quadratic forms like
+        // `return x*x + y*y;` and replace them with a single instruction.
 
-        // Optimize each energy expression
-        for (auto &[id, expr] : function_ir.energy_expressions)
+        // We need to analyze the last basic block that leads to a return.
+        if (function_ir.basic_blocks.empty())
+            return false;
+
+        auto &last_block = function_ir.basic_blocks.back();
+        if (last_block->instructions.empty())
+            return false;
+
+        // Find the return instruction.
+        auto it = std::find_if(last_block->instructions.rbegin(), last_block->instructions.rend(),
+                               [](const auto &instr)
+                               { return dynamic_cast<ir::ReturnInstr *>(instr.get()) != nullptr; });
+
+        if (it == last_block->instructions.rend())
+            return false;
+
+        auto *return_instr = static_cast<ir::ReturnInstr *>(it->get());
+        if (!return_instr->return_value.has_value() || !std::holds_alternative<std::string>(*return_instr->return_value))
         {
-            // Try to identify quadratic form in the energy function
-            std::vector<std::vector<double>> matrix;
-            if (identify_quadratic_form(*expr, matrix))
-            {
-                // If it's quadratic, simplify it - but only set modified if we actually change something
-                if (simplify_quadratic_form(*expr, matrix))
-                {
-                    made_quadratic_simplifications = true;
-                    std::cout << "  Simplified quadratic energy function: " << id << std::endl;
-                }
+            return false;
+        }
 
-                // Check if it has a minimum - this is informational and doesn't modify the IR
-                if (has_minimum(matrix))
+        std::string result_reg = std::get<std::string>(*return_instr->return_value);
+
+        // --- Pattern Matching for Quadratic Form: sum(var * var) ---
+        // This is a simplified pattern matcher for demonstration. A real one would be a full data-flow analysis.
+        std::map<std::string, std::string> squares; // Map from squared register to original variable register
+        std::vector<std::string> summed_squares;
+
+        for (const auto &instr_ptr : last_block->instructions)
+        {
+            // Find `r_sq = mul r_var, r_var`
+            if (auto *mul = dynamic_cast<ir::BinaryOpInstr *>(instr_ptr.get()))
+            {
+                if (mul->opcode == ir::OpCode::MUL && ir::to_string(mul->arg1) == ir::to_string(mul->arg2))
                 {
-                    std::cout << "  Energy function " << id << " has a minimum" << std::endl;
+                    squares[mul->result_reg] = ir::to_string(mul->arg1);
                 }
-                else
+            }
+
+            // Find `r_sum = add r_sq1, r_sq2`
+            if (auto *add = dynamic_cast<ir::BinaryOpInstr *>(instr_ptr.get()))
+            {
+                if (add->opcode == ir::OpCode::ADD)
                 {
-                    std::cout << "  Warning: Energy function " << id << " may not have a minimum" << std::endl;
+                    std::string arg1_str = ir::to_string(add->arg1);
+                    std::string arg2_str = ir::to_string(add->arg2);
+                    if (squares.count(arg1_str) && squares.count(arg2_str))
+                    {
+                        // This is an addition of two squares.
+                        if (add->result_reg == result_reg)
+                        { // This is the final sum
+                            summed_squares.push_back(squares[arg1_str]);
+                            summed_squares.push_back(squares[arg2_str]);
+                        }
+                    }
                 }
             }
         }
 
-        // Try to optimize for minimum energy dissipation - only set modified if we actually change something
-        if (optimize_for_minimum_dissipation(function_ir))
+        if (summed_squares.size() >= 2)
         {
-            made_dissipation_optimizations = true;
+            std::cout << "  Detected quadratic form pattern in energy function." << std::endl;
+
+            // Re-write the IR.
+            std::vector<std::unique_ptr<ir::Instruction>> new_instructions;
+            std::vector<ir::Operand> var_operands;
+            for (const auto &var_reg : summed_squares)
+            {
+                var_operands.push_back(var_reg);
+            }
+
+            // We create a new instruction that represents this entire calculation.
+            // The backend can then map this to a highly optimized hardware implementation.
+            std::string matrix_id = "identity_quadratic"; // Placeholder for matrix data
+            new_instructions.push_back(std::make_unique<ir::QuadraticFormInstr>(result_reg, var_operands, matrix_id));
+            new_instructions.push_back(std::move(*it)); // Move the return instruction to the end.
+
+            last_block->instructions = std::move(new_instructions);
+
+            std::cout << "  Simplified energy function IR with QUADRATIC_FORM instruction." << std::endl;
+            modified = true;
         }
 
-        // Only return true if we actually made changes
-        return made_quadratic_simplifications || made_dissipation_optimizations;
+        return modified;
     }
+
+    // Other methods from the original file are placeholders and can be removed or left as is.
+    // The run method now contains the primary logic.
 
     bool EnergyFunctionPass::identify_quadratic_form(ir::EnergyExpression &expr,
                                                      std::vector<std::vector<double>> &matrix)

@@ -37,6 +37,20 @@ namespace thermolang::ir
             return "return";
         case OpCode::CALL:
             return "call";
+        case OpCode::EQUAL:
+            return "eq";
+        case OpCode::NOT_EQUAL:
+            return "neq";
+        case OpCode::LESS:
+            return "lt";
+        case OpCode::LESS_EQUAL:
+            return "lte";
+        case OpCode::GREATER:
+            return "gt";
+        case OpCode::GREATER_EQUAL:
+            return "gte";
+        case OpCode::QUADRATIC_FORM:
+            return "quadratic_form";
         case OpCode::SAMPLE_GAUSSIAN:
             return "sample_gaussian";
         case OpCode::SAMPLE_UNIFORM:
@@ -110,6 +124,28 @@ namespace thermolang::ir
             }
         }
         ss << ")";
+        return ss.str();
+    }
+
+    std::string JumpInstr::toString() const
+    {
+        return "    jump " + target_label;
+    }
+
+    std::string BranchInstr::toString() const
+    {
+        return "    branch " + to_string(condition_reg) + ", " + true_label + ", " + false_label;
+    }
+
+    std::string QuadraticFormInstr::toString() const
+    {
+        std::stringstream ss;
+        ss << "    " << result_reg << " = quadratic_form matrix=" << matrix_id << ", vars=[";
+        for (size_t i = 0; i < variables.size(); ++i)
+        {
+            ss << to_string(variables[i]) << (i == variables.size() - 1 ? "" : ", ");
+        }
+        ss << "]";
         return ss.str();
     }
 

@@ -58,6 +58,8 @@ namespace thermolang
         void visit(const ParallelStmt &stmt) override;
         void visit(const TypeStmt &stmt) override;
         void visit(const AnnotationStmt &stmt) override;
+        void visit(const IfStmt &stmt) override;
+        void visit(const WhileStmt &stmt) override;
 
         // ExprVisitor implementation
         void visit(const BinaryExpr &expr) override;
@@ -96,6 +98,9 @@ namespace thermolang
         void pre_register_functions(const std::vector<std::unique_ptr<Stmt>> &statements);
         void pre_register_function_stmt(const Stmt &stmt);
         void pre_register_types(const std::vector<std::unique_ptr<Stmt>> &statements);
+        std::shared_ptr<Type> resolve_type(const std::unique_ptr<Expr>& expr);
+        bool is_boolean_type(const Type &type);
+        void report_error(const std::string &message);
     };
 
 } // namespace thermolang

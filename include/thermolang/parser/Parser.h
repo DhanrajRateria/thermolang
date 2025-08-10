@@ -40,6 +40,8 @@ namespace thermolang
         std::unique_ptr<Stmt> expression_statement();
         std::unique_ptr<Stmt> block_statement();
         std::unique_ptr<Stmt> return_statement();
+        std::unique_ptr<Stmt> if_statement();
+        std::unique_ptr<Stmt> while_statement();
         std::unique_ptr<Stmt> thermal_statement();
         std::unique_ptr<Stmt> parallel_statement();
         std::unique_ptr<Stmt> annotation_statement();
@@ -49,9 +51,13 @@ namespace thermolang
         // Expression-level rules
         std::unique_ptr<Expr> expression();
         std::unique_ptr<Expr> assignment();
+        std::unique_ptr<Expr> logical_or();
+        std::unique_ptr<Expr> logical_and();
         std::unique_ptr<Expr> term();
         std::unique_ptr<Expr> factor();
         std::unique_ptr<Expr> unary();
+        std::unique_ptr<Expr> equality();
+        std::unique_ptr<Expr> comparison();
         std::unique_ptr<Expr> call();
         std::unique_ptr<Expr> primary();
 

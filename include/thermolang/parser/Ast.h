@@ -29,6 +29,8 @@ namespace thermolang
     struct ParallelStmt;
     struct TypeStmt;
     struct AnnotationStmt;
+    struct IfStmt;
+    struct WhileStmt;
 
     // Type expression nodes
     struct NameTypeExpr;
@@ -68,6 +70,8 @@ namespace thermolang
         virtual void visit(const BlockStmt &stmt) = 0;
         virtual void visit(const StochasticStmt &stmt) = 0;
         virtual void visit(const EnergyStmt &stmt) = 0;
+        virtual void visit(const IfStmt &stmt) = 0;
+        virtual void visit(const WhileStmt &stmt) = 0;
         virtual void visit(const ThermalStmt &stmt) = 0;
         virtual void visit(const ParallelStmt &stmt) = 0;
         virtual void visit(const TypeStmt &stmt) = 0;
@@ -253,6 +257,29 @@ namespace thermolang
         void accept(StmtVisitor &visitor) const override;
     };
 
+    struct IfStmt : Stmt
+    {
+        std::unique_ptr<Expr> condition;
+        std::unique_ptr<Stmt> then_branch;
+        std::unique_ptr<Stmt> else_branch; // Can be nullptr
+
+        IfStmt(std::unique_ptr<Expr> cond, std::unique_ptr<Stmt> then_b, std::unique_ptr<Stmt> else_b)
+            : condition(std::move(cond)), then_branch(std::move(then_b)), else_branch(std::move(else_b)) {}
+
+        void accept(StmtVisitor &visitor) const override;
+    };
+
+    struct WhileStmt : Stmt
+    {
+        std::unique_ptr<Expr> condition;
+        std::unique_ptr<Stmt> body;
+
+        WhileStmt(std::unique_ptr<Expr> cond, std::unique_ptr<Stmt> b)
+            : condition(std::move(cond)), body(std::move(b)) {}
+
+        void accept(StmtVisitor &visitor) const override;
+    };
+    
     struct Parameter
     {
         Token name;
