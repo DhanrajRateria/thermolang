@@ -19,28 +19,30 @@ namespace thermolang
 
         // stochastic fn sample_gaussian(mean: float, variance: float) -> distribution<float>
         auto float_dist_type = std::make_shared<DistributionType>(Type::float_type());
+        auto bool_dist_type = std::make_shared<DistributionType>(Type::bool_type());
 
         auto draw_sample_type = std::make_shared<FunctionType>(
             std::vector<std::shared_ptr<Type>>{float_dist_type},
-            Type::float_type() // Returns a single float, not another distribution.
+            Type::float_type() // Returns a single float.
         );
         define("draw_sample", draw_sample_type, false, true);
 
         auto sample_gaussian_type = std::make_shared<FunctionType>(
-            std::vector<std::shared_ptr<Type>>{float_dist_type},
-            Type::float_type());
+            std::vector<std::shared_ptr<Type>>{Type::float_type(), Type::float_type()},
+            float_dist_type // Correctly returns a distribution object.
+        );
         define("sample_gaussian", sample_gaussian_type, false, true);
 
-        // stochastic fn sample_uniform(low: float, high: float) -> distribution<float>
+        // `sample_uniform(low: float, high: float)` -> returns a distribution object.
         auto sample_uniform_type = std::make_shared<FunctionType>(
             std::vector<std::shared_ptr<Type>>{Type::float_type(), Type::float_type()},
             float_dist_type);
         define("sample_uniform", sample_uniform_type, false, true);
 
-        // stochastic fn sample_bernoulli(p: float) -> distribution<bool>
+        // `sample_bernoulli(p: float)` -> returns a distribution object.
         auto sample_bernoulli_type = std::make_shared<FunctionType>(
-            std::vector<std::shared_ptr<Type>>{Type::float_type(), Type::float_type()},
-            float_dist_type);
+            std::vector<std::shared_ptr<Type>>{Type::float_type()},
+            bool_dist_type);
         define("sample_bernoulli", sample_bernoulli_type, false, true);
 
         // --- Thermodynamic Operations ---
@@ -51,24 +53,14 @@ namespace thermolang
 
         // thermal fn minimize_energy(energy_func: energy<float>, initial_state: float) -> float
         auto minimize_energy_type = std::make_shared<FunctionType>(
-            std::vector<std::shared_ptr<Type>>{
-                single_var_energy_type,
-                Type::float_type() // initial_state
-            },
-            Type::float_type() // Returns final energy
-        );
+            std::vector<std::shared_ptr<Type>>{single_var_energy_type, Type::float_type()},
+            Type::float_type());
         define("minimize_energy", minimize_energy_type, false, true);
 
         // thermal fn thermal_anneal(energy_func: energy<float>, initial_temp: float, cooling_rate: float, steps: int) -> float
         auto thermal_anneal_type = std::make_shared<FunctionType>(
-            std::vector<std::shared_ptr<Type>>{
-                single_var_energy_type,
-                Type::float_type(), // initial_temp
-                Type::float_type(), // cooling_rate
-                Type::int_type()    // steps
-            },
-            Type::float_type() // Returns final energy
-        );
+            std::vector<std::shared_ptr<Type>>{single_var_energy_type, Type::float_type(), Type::float_type(), Type::int_type()},
+            Type::float_type());
         define("thermal_anneal", thermal_anneal_type, false, true);
     }
 

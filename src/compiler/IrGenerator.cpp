@@ -280,6 +280,27 @@ namespace thermolang::compiler
 
     void IrGenerator::visit(const BinaryExpr &expr)
     {
+
+        if (expr.op.get_type() == TokenType::EQUAL)
+        {
+            // The left side must be a variable. The parser guarantees this.
+            auto *var_expr = dynamic_cast<const VariableExpr *>(expr.left.get());
+
+            // First, evaluate the right-hand side to get the new value/register.
+            analyze(*expr.right);
+            std::string value_reg = last_expr_result_reg_;
+
+            // Update the map so the variable name now points to the new register.
+            // Our define_variable helper works for both new definitions and re-assignments.
+            define_variable(var_expr->name.get_lexeme(), value_reg);
+
+            // The result of an assignment expression is the assigned value itself.
+            last_expr_result_reg_ = value_reg;
+
+            // Return early to skip the general operator switch statement.
+            return;
+        }
+        
         analyze(*expr.left);
         std::string left_reg = last_expr_result_reg_;
 
@@ -321,7 +342,7 @@ namespace thermolang::compiler
             opcode = ir::OpCode::GREATER_EQUAL;
             break;
         default:
-            throw std::runtime_error("Unsupported binary operator for IR generation");
+            throw std::runtime_error("Unsupported binary operator for IR generation: " + expr.op.get_lexeme());
         }
 
         add_instruction(std::make_unique<ir::BinaryOpInstr>(opcode, result_reg, left_reg, right_reg));

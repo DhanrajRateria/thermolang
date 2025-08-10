@@ -211,12 +211,12 @@ namespace thermolang
 
     void SemanticAnalyzer::visit(const VariableExpr &expr)
     {
-        if (!symbols_.resolve(expr.name.get_lexeme()))
-        {
-            std::cerr << "Semantic Error: Use of undeclared variable '"
-                      << expr.name.get_lexeme() << "'." << std::endl;
-            had_error_ = true;
-        }
+        // if (!symbols_.resolve(expr.name.get_lexeme()))
+        // {
+        //     std::cerr << "Semantic Error: Use of undeclared variable '"
+        //               << expr.name.get_lexeme() << "'." << std::endl;
+        //     had_error_ = true;
+        // }
     }
 
     void SemanticAnalyzer::visit(const CallExpr &expr)
