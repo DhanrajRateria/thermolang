@@ -52,6 +52,7 @@ namespace thermolang
         void debug_dump() const;
 
         bool is_defined_in_current_scope(const std::string &name) const;
+        void load_builtins();
 
     private:
         std::vector<std::unordered_map<std::string, Symbol>> scopes_;

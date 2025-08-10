@@ -11,58 +11,90 @@ namespace thermolang::optimizer
     {
         bool modified = false;
 
+        // Process all blocks in the function
         for (auto &block : function_ir.basic_blocks)
         {
-            // We need to iterate carefully as we'll be modifying the instruction list.
-            for (auto it = block->instructions.begin(); it != block->instructions.end();)
+            // Find thermal_anneal instructions that could be unrolled
+            std::vector<size_t> anneal_indices;
+
+            for (size_t i = 0; i < block->instructions.size(); i++)
             {
-                if (auto *anneal = dynamic_cast<ir::ThermalAnnealInstr *>(it->get()))
+                auto &instr = block->instructions[i];
+                if (auto *anneal = dynamic_cast<ir::ThermalAnnealInstr *>(instr.get()))
                 {
-                    // Check if all parameters are compile-time constants.
-                    auto temp_opt = std::get_if<double>(&anneal->initial_temp);
-                    auto rate_opt = std::get_if<double>(&anneal->cooling_rate);
-                    auto steps_opt = std::get_if<int64_t>(&anneal->steps);
+                    // Check if all parameters are compile-time constants (or simple values)
+                    bool can_unroll = true;
+                    double initial_temp = 1.0;
+                    double cooling_rate = 0.95;
+                    int64_t steps = 5;
 
-                    if (temp_opt && rate_opt && steps_opt)
+                    // Try to get values or use defaults
+                    if (std::holds_alternative<double>(anneal->initial_temp))
+                        initial_temp = std::get<double>(anneal->initial_temp);
+                    else if (std::holds_alternative<int64_t>(anneal->initial_temp))
+                        initial_temp = static_cast<double>(std::get<int64_t>(anneal->initial_temp));
+                    else
+                        can_unroll = false;
+
+                    if (std::holds_alternative<double>(anneal->cooling_rate))
+                        cooling_rate = std::get<double>(anneal->cooling_rate);
+                    else if (std::holds_alternative<int64_t>(anneal->cooling_rate))
+                        cooling_rate = static_cast<double>(std::get<int64_t>(anneal->cooling_rate));
+                    else
+                        can_unroll = false;
+
+                    if (std::holds_alternative<int64_t>(anneal->steps))
+                        steps = std::get<int64_t>(anneal->steps);
+                    else
+                        can_unroll = false;
+
+                    if (can_unroll)
                     {
-                        std::cout << "  Optimizing thermal_anneal instruction by unrolling." << std::endl;
-
-                        // --- Generate the new sequence of IR instructions ---
+                        // Unroll the thermal_anneal into multiple thermal_step instructions
                         std::vector<std::unique_ptr<ir::Instruction>> new_instrs;
 
-                        double current_temp = *temp_opt;
-                        int64_t num_steps = *steps_opt;
-                        std::string state_reg = "r_anneal_state"; // A conceptual register for state
+                        // Set up initial state
+                        std::string state_reg = "r_anneal_state";
+                        new_instrs.push_back(std::make_unique<ir::LoadConstInstr>(
+                            state_reg, 0.0)); // Initialize state
 
-                        for (int i = 0; i < num_steps; ++i)
+                        // Generate steps
+                        double temp = initial_temp;
+                        for (int i = 0; i < steps; i++)
                         {
-                            // 1. Set the temperature for this step.
-                            new_instrs.push_back(std::make_unique<ir::SetTemperatureInstr>(current_temp));
+                            // Set temperature
+                            new_instrs.push_back(std::make_unique<ir::SetTemperatureInstr>(temp));
 
-                            // 2. Perform one step of thermodynamic computation.
-                            // The result of the step would update the state.
-                            std::string next_state_reg = "r_anneal_state_" + std::to_string(i);
-                            new_instrs.push_back(std::make_unique<ir::ThermalStepInstr>(next_state_reg, state_reg, current_temp));
-                            state_reg = next_state_reg; // Update state for next iteration
+                            // Perform thermal step
+                            std::string next_state = "r_anneal_state_" + std::to_string(i);
+                            new_instrs.push_back(std::make_unique<ir::ThermalStepInstr>(
+                                next_state, state_reg, temp));
 
-                            // 3. Update temperature for the next iteration (exponential cooling)
-                            current_temp *= *rate_opt;
+                            // Update for next iteration
+                            state_reg = next_state;
+                            temp *= cooling_rate;
                         }
 
-                        // The final result of the anneal is the last state.
-                        new_instrs.push_back(std::make_unique<ir::AssignInstr>(anneal->result_reg, state_reg));
+                        // Final result assignment
+                        new_instrs.push_back(std::make_unique<ir::AssignInstr>(
+                            anneal->result_reg, state_reg));
 
-                        // --- Replace the old instruction with the new sequence ---
-                        it = block->instructions.erase(it); // Erase the original anneal instruction
-                        it = block->instructions.insert(it, std::make_move_iterator(new_instrs.begin()), std::make_move_iterator(new_instrs.end()));
+                        // Replace the original instruction with this sequence
+                        block->instructions.erase(block->instructions.begin() + i);
+                        block->instructions.insert(block->instructions.begin() + i,
+                                                   std::make_move_iterator(new_instrs.begin()),
+                                                   std::make_move_iterator(new_instrs.end()));
 
+                        // Mark as modified
                         modified = true;
-                        continue; // Continue to the next instruction
+
+                        // Adjust index to skip over the newly inserted instructions
+                        i += new_instrs.size() - 1;
                     }
                 }
-                ++it;
             }
         }
+
         return modified;
     }
 

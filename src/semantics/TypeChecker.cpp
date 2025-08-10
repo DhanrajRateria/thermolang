@@ -108,6 +108,110 @@ namespace thermolang
         return nullptr;
     }
 
+    class PrePassVisitor : public StmtVisitor
+    {
+    public:
+        PrePassVisitor(SymbolTable &symbols, TypeResolver &resolver)
+            : symbols_(symbols), resolver_(resolver), current_pass_(PASS_TYPES) {}
+
+        void run(const std::vector<std::unique_ptr<Stmt>> &statements)
+        {
+            // Pass 1: Find all type aliases
+            current_pass_ = PASS_TYPES;
+            for (const auto &stmt : statements)
+            {
+                if (stmt)
+                    stmt->accept(*this);
+            }
+
+            // Pass 2: Find all function signatures
+            current_pass_ = PASS_FUNCTIONS;
+            for (const auto &stmt : statements)
+            {
+                if (stmt)
+                    stmt->accept(*this);
+            }
+        }
+
+        void visit(const TypeStmt &stmt) override
+        {
+            if (current_pass_ != PASS_TYPES)
+                return;
+            auto resolved_type = resolver_.resolve(*stmt.type_expr);
+            if (!symbols_.define(stmt.name.get_lexeme(), resolved_type))
+            {
+                // Error already handled by semantic analyzer, just skip
+            }
+        }
+
+        void visit(const FunctionStmt &stmt) override
+        {
+            if (current_pass_ != PASS_FUNCTIONS)
+                return;
+            register_function(stmt);
+        }
+        void visit(const StochasticStmt &stmt) override
+        {
+            if (current_pass_ != PASS_FUNCTIONS)
+                return;
+            register_function(*stmt.function, true);
+        }
+        void visit(const EnergyStmt &stmt) override
+        {
+            if (current_pass_ != PASS_FUNCTIONS)
+                return;
+            register_function(*stmt.function, false, true);
+        }
+
+        // Recurse into blocks to find nested declarations
+        void visit(const BlockStmt &stmt) override
+        {
+            for (const auto &s : stmt.statements)
+            {
+                s->accept(*this);
+            }
+        }
+        void visit(const IfStmt &stmt) override
+        {
+            stmt.then_branch->accept(*this);
+            if (stmt.else_branch)
+                stmt.else_branch->accept(*this);
+        }
+        void visit(const WhileStmt &stmt) override { stmt.body->accept(*this); }
+        void visit(const AnnotationStmt &stmt) override { stmt.statement->accept(*this); }
+
+        // Ignore all other statements during pre-pass
+        void visit(const LetStmt &stmt) override {}
+        void visit(const ExprStmt &stmt) override {}
+        void visit(const ReturnStmt &stmt) override {}
+        void visit(const ThermalStmt &stmt) override { stmt.block->accept(*this); }
+        void visit(const ParallelStmt &stmt) override { stmt.block->accept(*this); }
+
+    private:
+        enum PassType
+        {
+            PASS_TYPES,
+            PASS_FUNCTIONS
+        };
+        PassType current_pass_;
+        SymbolTable &symbols_;
+        TypeResolver &resolver_;
+
+        void register_function(const FunctionStmt &stmt, bool is_stochastic = false, bool is_energy = false)
+        {
+            if (symbols_.is_defined_in_current_scope(stmt.name.get_lexeme()))
+                return;
+            std::vector<std::shared_ptr<Type>> param_types;
+            for (const auto &param : stmt.params)
+            {
+                param_types.push_back(resolver_.resolve(*param.type));
+            }
+            auto return_type = resolver_.resolve(*stmt.return_type);
+            auto func_type = std::make_shared<FunctionType>(std::move(param_types), return_type);
+            symbols_.define(stmt.name.get_lexeme(), func_type, false, true);
+        }
+    };
+
     // TypeChecker implementation
     TypeChecker::TypeChecker(SymbolTable &symbols)
         : symbols_(symbols), resolver_(symbols), current_function_return_type_(nullptr) {}
@@ -115,17 +219,18 @@ namespace thermolang
     bool TypeChecker::check(const std::vector<std::unique_ptr<Stmt>> &statements)
     {
         had_error_ = false;
-        pre_register_types(statements);
+        symbols_.load_builtins(); // Load built-ins first
 
-        // First pass: register all functions
-        pre_register_functions(statements);
+        // Run the new pre-pass to register all user-defined types and functions
+        PrePassVisitor pre_pass(symbols_, resolver_);
+        pre_pass.run(statements);
 
-        // Second pass: do full type checking
+        // Main pass: do full type checking on everything
         for (const auto &stmt : statements)
         {
-            check(*stmt);
+            if (stmt)
+                check(*stmt);
         }
-
         return !had_error_;
     }
 

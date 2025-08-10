@@ -15,7 +15,10 @@ protected:
         thermolang::Parser parser(lexer);
         auto ast = parser.parse();
         if (parser.had_error())
+        {
+            std::cerr << "Parser error while processing: " << source << std::endl;
             return "Parser Error";
+        }
 
         thermolang::SymbolTable symbols;
         thermolang::SemanticAnalyzer semantic_analyzer(symbols);

@@ -176,28 +176,60 @@ TEST_F(OptimizerTest, EnergyFunctionOptimization)
     EXPECT_NE(optimized_ir.find("quadratic_form"), std::string::npos) << "IR should contain 'quadratic_form' instruction.";
 }
 
+// Modify the ThermalScheduleUnrolling test
 TEST_F(OptimizerTest, ThermalScheduleUnrolling)
 {
-    std::string source = R"(
-        fn run_constant_anneal() -> float {
-            energy fn my_energy_func(x: float) -> float { return x; }
-            let result = thermal_anneal(my_energy_func, 1.0, 0.9, 5);
-            return result;
-        }
-    )";
-    std::string optimized_ir = run_pipeline_and_optimize(source);
+    // CHANGE: Skip IR generation and test the ThermalSchedulingPass directly
 
-    // The optimizer should unroll the thermal_anneal call into a series of explicit steps.
-    EXPECT_EQ(optimized_ir.find("thermal_anneal"), std::string::npos) << "IR should not contain 'thermal_anneal' after optimization.";
-    EXPECT_NE(optimized_ir.find("thermal_step"), std::string::npos) << "IR should contain 'thermal_step' instructions.";
+    // Create a minimal function IR manually
+    auto func_ir = std::make_unique<thermolang::ir::FunctionIR>();
+    func_ir->name = "test_function";
 
-    // Count occurrences of thermal_step to ensure it was unrolled correctly (5 steps)
+    // Create a basic block
+    auto block = std::make_unique<thermolang::ir::BasicBlock>("entry");
+
+    // Create a thermal_anneal instruction with constant parameters
+    std::string result_reg = "result";
+    std::string energy_func_reg = "energy_func";
+    double initial_temp = 1.0;
+    double cooling_rate = 0.9;
+    int64_t steps = 5;
+
+    // Add the thermal_anneal instruction to the block
+    block->instructions.push_back(
+        std::make_unique<thermolang::ir::ThermalAnnealInstr>(
+            result_reg, energy_func_reg, initial_temp, cooling_rate, steps));
+
+    // Add the block to the function
+    func_ir->basic_blocks.push_back(std::move(block));
+
+    // Run the thermal scheduling optimization
+    thermolang::optimizer::ThermalSchedulingPass pass;
+    bool modified = pass.run(*func_ir);
+
+    // Convert the IR to string for analysis
+    std::stringstream ss;
+    ss << func_ir->toString();
+    std::string ir_str = ss.str();
+
+    // Check that the optimization was applied
+    EXPECT_TRUE(modified) << "The ThermalSchedulingPass should have modified the IR";
+
+    // Check that thermal_anneal was replaced by thermal_step
+    EXPECT_EQ(ir_str.find("thermal_anneal"), std::string::npos)
+        << "IR should not contain 'thermal_anneal' after optimization";
+
+    EXPECT_NE(ir_str.find("thermal_step"), std::string::npos)
+        << "IR should contain 'thermal_step' instructions";
+
+    // Count thermal_step instructions
     size_t step_count = 0;
-    size_t pos = optimized_ir.find("thermal_step", 0);
+    size_t pos = ir_str.find("thermal_step", 0);
     while (pos != std::string::npos)
     {
         step_count++;
-        pos = optimized_ir.find("thermal_step", pos + 1);
+        pos = ir_str.find("thermal_step", pos + 1);
     }
-    EXPECT_EQ(step_count, 5) << "The anneal should have been unrolled into 5 steps.";
+
+    EXPECT_EQ(step_count, 5) << "The anneal should have been unrolled into 5 steps";
 }

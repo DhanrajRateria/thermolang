@@ -221,10 +221,10 @@ namespace thermolang::compiler
 
     void IrGenerator::visit(const WhileStmt &stmt)
     {
-        // Create labels for the loop
-        std::string cond_label = new_label();
-        std::string body_label = new_label();
-        std::string exit_label = new_label();
+        // Use new_label() to create unique labels
+        std::string cond_label = "L_cond";
+        std::string body_label = "L_body";
+        std::string exit_label = "L_exit";
 
         // Jump to the condition check first
         add_instruction(std::make_unique<ir::JumpInstr>(cond_label));

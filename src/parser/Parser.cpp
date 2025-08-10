@@ -632,25 +632,17 @@ namespace thermolang
 
     std::unique_ptr<Expr> Parser::assignment()
     {
-        auto expr = term();
-
+        auto expr = equality();
         if (match({TokenType::EQUAL}))
         {
             Token equals = previous();
-            auto value = assignment();
-
+            auto value = assignment(); // Right-associative
             if (auto *var_expr = dynamic_cast<VariableExpr *>(expr.get()))
             {
-                Token name = var_expr->name;
-                return std::make_unique<BinaryExpr>(
-                    std::make_unique<VariableExpr>(name),
-                    equals,
-                    std::move(value));
+                return std::make_unique<BinaryExpr>(std::move(expr), equals, std::move(value));
             }
-
-            error("Invalid assignment target.");
+            throw error("Invalid assignment target.");
         }
-
         return expr;
     }
 
@@ -740,27 +732,18 @@ namespace thermolang
     std::unique_ptr<Expr> Parser::call()
     {
         auto expr = primary();
-
-        while (true)
+        while (match({TokenType::LPAREN}))
         {
-            if (match({TokenType::LPAREN}))
+            std::vector<std::unique_ptr<Expr>> arguments;
+            if (!check(TokenType::RPAREN))
             {
-                // It's a call expression
-                std::vector<std::unique_ptr<Expr>> arguments;
-                if (!check(TokenType::RPAREN))
+                do
                 {
-                    do
-                    {
-                        arguments.push_back(expression());
-                    } while (match({TokenType::COMMA}));
-                }
-                Token paren = consume(TokenType::RPAREN, "Expect ')' after arguments.");
-                expr = std::make_unique<CallExpr>(std::move(expr), paren, std::move(arguments));
+                    arguments.push_back(expression());
+                } while (match({TokenType::COMMA}));
             }
-            else
-            {
-                break;
-            }
+            Token paren = consume(TokenType::RPAREN, "Expect ')' after arguments.");
+            expr = std::make_unique<CallExpr>(std::move(expr), paren, std::move(arguments));
         }
         return expr;
     }

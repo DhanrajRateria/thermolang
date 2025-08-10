@@ -67,10 +67,11 @@ TEST_F(TypeSystemTest, FunctionTypeMismatch)
 TEST_F(TypeSystemTest, StochasticFunction)
 {
     std::string source = R"(
-        stochastic fn sample_gaussian(mean: float, var: float) -> float {
-            return mean;
+        fn get_one_sample() -> float {
+            let g = sample_gaussian(0.0, 1.0);
+            let value: float = draw_sample(g);
+            return value;
         }
-        let sample: float = sample_gaussian(0.0, 1.0);
     )";
     EXPECT_TRUE(check_types(source));
 }
@@ -99,7 +100,8 @@ TEST_F(TypeSystemTest, EnergyFunction)
     EXPECT_TRUE(check_types(source));
 }
 
-TEST_F(TypeSystemTest, CircuitType) {
+TEST_F(TypeSystemTest, CircuitType)
+{
     std::string source = R"(
         type MyCircuit = circuit<nodes=8, coupling="full">;
         
