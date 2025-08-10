@@ -7,6 +7,7 @@ add_subdirectory(ir)
 add_subdirectory(compiler)
 add_subdirectory(optimizer)
 add_subdirectory(codegen)
+add_subdirectory(hardware)
 
 # --- Main Compiler Executable ---
 add_executable(thermolangc main.cpp)
@@ -15,6 +16,7 @@ add_executable(thermolangc main.cpp)
 target_link_libraries(thermolangc PRIVATE
     ThermoLangCodeGen
     ThermoLangOptimizer
+    ThermoLangHardware
     ThermoLangCompiler
     ThermoLangSemantics
     ThermoLangParser

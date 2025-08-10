@@ -2,6 +2,8 @@
 #include <vector>
 #include <string>
 #include <memory>
+#include <cmath>
+#include <variant>
 
 #include "thermolang/compiler/IrGenerator.h"
 #include "thermolang/optimizer/OptimizationManager.h"
@@ -15,7 +17,7 @@
 #include "thermolang/optimizer/VarianceTrackingPass.h"
 #include "thermolang/parser/Parser.h"
 #include "thermolang/semantics/SemanticAnalyzer.h"
-#include "thermolang/semantics/TypeChecker.h"
+#include "thermolang/optimizer/ThermalSchedulingPass.h"
 
 // Test fixture for Optimizer Passes
 class OptimizerTest : public ::testing::Test
@@ -86,6 +88,23 @@ protected:
             }
         }
         return nullptr;
+    }
+    std::vector<std::unique_ptr<thermolang::ir::FunctionIR>> get_full_ir(const std::string &source)
+    {
+        thermolang::Lexer lexer(source);
+        thermolang::Parser parser(lexer);
+        auto ast = parser.parse();
+        if (parser.had_error())
+            return {};
+        thermolang::SymbolTable symbols;
+        thermolang::SemanticAnalyzer semantic_analyzer(symbols);
+        if (!semantic_analyzer.analyze(ast))
+            return {};
+        thermolang::TypeChecker type_checker(symbols);
+        if (!type_checker.check(ast))
+            return {};
+        thermolang::compiler::IrGenerator ir_gen;
+        return ir_gen.generate(ast);
     }
 };
 
@@ -172,4 +191,79 @@ TEST_F(OptimizerTest, EnergyFunctionOptimization)
     EXPECT_EQ(optimized_ir.find("mul"), std::string::npos) << "IR should not contain 'mul' after optimization.";
     EXPECT_EQ(optimized_ir.find("add"), std::string::npos) << "IR should not contain 'add' after optimization.";
     EXPECT_NE(optimized_ir.find("quadratic_form"), std::string::npos) << "IR should contain 'quadratic_form' instruction.";
+}
+
+TEST_F(OptimizerTest, ThermalSchedulingPass)
+{
+    std::string source = R"(
+        energy fn complex_energy(s1: float, s2: float, s3: float, s4: float) -> float {
+            return s1+s2+s3+s4;
+        }
+
+        fn main() -> void {
+            let initial_temp = 1.0;
+            let cooling_rate = 0.9;
+            let steps = 100;
+            let result = thermal_anneal(complex_energy, initial_temp, cooling_rate, steps);
+        }
+    )";
+
+    auto ir_program = get_full_ir(source);
+    ASSERT_EQ(ir_program.size(), 2);
+
+    auto *main_func = ir_program[1].get();
+    ASSERT_EQ(main_func->name, "main");
+
+    thermolang::optimizer::ThermalSchedulingPass pass;
+    pass.set_program_ir(&ir_program);
+    bool modified = pass.run(*main_func);
+
+    ASSERT_TRUE(modified);
+
+    // --- Robustly find the modified values by tracing registers from the call site ---
+    std::string temp_reg_name;
+    std::string steps_reg_name;
+
+    // 1. Find the thermal_anneal call and get the register names for its arguments.
+    for (const auto &instr : main_func->basic_blocks[0]->instructions)
+    {
+        if (auto *call = dynamic_cast<thermolang::ir::CallInstr *>(instr.get()))
+        {
+            if (call->callee_name == "thermal_anneal")
+            {
+                temp_reg_name = std::get<std::string>(call->args[1]);  // temp is the 2nd argument (index 1)
+                steps_reg_name = std::get<std::string>(call->args[3]); // steps is the 4th argument (index 3)
+                break;
+            }
+        }
+    }
+
+    ASSERT_FALSE(temp_reg_name.empty());
+    ASSERT_FALSE(steps_reg_name.empty());
+
+    double found_temp = 0.0;
+    int64_t found_steps = 0;
+
+    // 2. Now, find the LoadConstInstr that define *those specific registers*.
+    for (const auto &instr : main_func->basic_blocks[0]->instructions)
+    {
+        if (auto *load = dynamic_cast<thermolang::ir::LoadConstInstr *>(instr.get()))
+        {
+            if (load->result_reg == temp_reg_name)
+            {
+                found_temp = std::get<double>(load->value);
+            }
+            if (load->result_reg == steps_reg_name)
+            {
+                found_steps = std::get<int64_t>(load->value);
+            }
+        }
+    }
+
+    // 3. Verify the results.
+    double expected_temp = 2.5 * log(4); // approx 3.4657
+    int64_t expected_steps = 4000;
+
+    EXPECT_NEAR(found_temp, expected_temp, 0.001);
+    EXPECT_EQ(found_steps, expected_steps);
 }

@@ -14,14 +14,27 @@ namespace thermolang::optimizer
             return false;
         }
 
-        bool modified = false;
-
         std::cout << "Running energy function optimization on '" << function_ir.name << "'" << std::endl;
 
         // In this implementation, we will look for simple quadratic forms like
         // `return x*x + y*y;` and replace them with a single instruction.
 
         // We need to analyze the last basic block that leads to a return.
+        for (const auto &block : function_ir.basic_blocks)
+        {
+            for (const auto &instr : block->instructions)
+            {
+                if (dynamic_cast<ir::IsingHamiltonianInstr *>(instr.get()) ||
+                    dynamic_cast<ir::QuadraticFormInstr *>(instr.get()))
+                {
+                    std::cout << "  Skipping EnergyFunctionPass; already optimized to a high-level form." << std::endl;
+                    return false; // Do not proceed
+                }
+            }
+        }
+
+        bool modified = false;
+
         if (function_ir.basic_blocks.empty())
             return false;
 

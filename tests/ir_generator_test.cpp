@@ -129,3 +129,20 @@ TEST_F(IrGeneratorTest, StochasticFunctionIsGenerated)
 
     EXPECT_EQ(actual_ir.rfind("stochastic function", 0), 0);
 }
+
+TEST_F(IrGeneratorTest, ParallelBlockGeneratesParallelFor)
+{
+    std::string source = R"(
+        fn main() -> void {
+            parallel {
+                let x = sample_gaussian(0.0, 1.0);
+                let y = sample_gaussian(0.0, 1.0);
+            }
+        }
+    )";
+    std::string ir = generate_ir(source);
+    
+    // Check that the IR now contains the high-level parallel instruction
+    EXPECT_NE(ir.find("parallel_for"), std::string::npos);
+    EXPECT_NE(ir.find("in r"), std::string::npos); // e.g. "parallel_for rX in rY"
+}

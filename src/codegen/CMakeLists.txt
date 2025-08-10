@@ -1,5 +1,7 @@
 add_library(ThermoLangCodeGen
     CodeGenerator.cpp
+    SimulationCodeGenerator.cpp
+    SPUCodeGenerator.cpp
 )
 
 target_include_directories(ThermoLangCodeGen PUBLIC

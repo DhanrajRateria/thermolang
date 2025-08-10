@@ -9,6 +9,20 @@ namespace thermolang::optimizer
 
     bool CircuitTopologyPass::run(ir::FunctionIR &function_ir)
     {
+
+        for (const auto &block : function_ir.basic_blocks)
+        {
+            for (const auto &instr : block->instructions)
+            {
+                if (dynamic_cast<ir::IsingHamiltonianInstr *>(instr.get()) ||
+                    dynamic_cast<ir::QuadraticFormInstr *>(instr.get()))
+                {
+                    std::cout << "  Skipping CircuitTopologyPass; function has been condensed to a high-level form." << std::endl;
+                    return false; // Nothing to do here.
+                }
+            }
+        }
+
         bool topology_modified = false;
         bool couplings_modified = false;
         bool partitioning_modified = false;

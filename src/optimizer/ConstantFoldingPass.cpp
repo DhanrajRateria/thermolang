@@ -28,6 +28,20 @@ namespace thermolang::optimizer
 
     bool ConstantFoldingPass::run(ir::FunctionIR &function_ir)
     {
+
+        for (const auto &block : function_ir.basic_blocks)
+        {
+            for (const auto &instr : block->instructions)
+            {
+                if (dynamic_cast<ir::IsingHamiltonianInstr *>(instr.get()) ||
+                    dynamic_cast<ir::QuadraticFormInstr *>(instr.get()))
+                {
+                    std::cout << "  Skipping ConstantFoldingPass; function has been condensed to a high-level form." << std::endl;
+                    return false; // Nothing to fold here.
+                }
+            }
+        }
+
         bool ir_changed = false;
         std::cout << "Running Constant Folding on '" << function_ir.name << "'" << std::endl;
         int fold_count = 0;

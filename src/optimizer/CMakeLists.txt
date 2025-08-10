@@ -6,6 +6,8 @@ add_library(ThermoLangOptimizer
     CircuitTopologyOptimizer.cpp
     VarianceTrackingPass.cpp
     IsingModelPass.cpp
+    ThermalSchedulingPass.cpp
+    ParallelizationPass.cpp
 )
 
 # Publicly expose the include directory for this library

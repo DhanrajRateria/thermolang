@@ -36,6 +36,11 @@ namespace thermolang
     {
         if (const PrimitiveType *other_prim = dynamic_cast<const PrimitiveType *>(&other))
         {
+            // Allow implicit conversion from int to float
+            // if (kind_ == Kind::FLOAT && other_prim->kind_ == Kind::INT)
+            // {
+            //     return true;
+            // }
             return kind_ == other_prim->kind_;
         }
         return false;
@@ -73,7 +78,7 @@ namespace thermolang
     {
         if (const DistributionType *other_dist = dynamic_cast<const DistributionType *>(&other))
         {
-            return element_type_->is_compatible_with(other_dist->element_type());
+            return element_type_->is_compatible_with(*other_dist->element_type_);
         }
         return false;
     }
@@ -100,31 +105,23 @@ namespace thermolang
 
     bool FunctionType::is_compatible_with(const Type &other) const
     {
-        if (const FunctionType *other_func = dynamic_cast<const FunctionType *>(&other))
+        const FunctionType *other_func = dynamic_cast<const FunctionType *>(&other);
+        if (!other_func)
+            return false;
+
+        if (!return_type_->is_compatible_with(*other_func->return_type_))
+            return false;
+
+        if (param_types_.size() != other_func->param_types_.size())
+            return false;
+
+        for (size_t i = 0; i < param_types_.size(); ++i)
         {
-            // Check return type
-            if (!return_type_->is_compatible_with(other_func->return_type()))
-            {
+            if (!param_types_[i]->is_compatible_with(*other_func->param_types_[i]))
                 return false;
-            }
-
-            // Check parameter types
-            if (param_types_.size() != other_func->param_types().size())
-            {
-                return false;
-            }
-
-            for (size_t i = 0; i < param_types_.size(); ++i)
-            {
-                if (!param_types_[i]->is_compatible_with(*other_func->param_types()[i]))
-                {
-                    return false;
-                }
-            }
-
-            return true;
         }
-        return false;
+
+        return true;
     }
 
     std::string FunctionType::to_string() const
@@ -151,32 +148,27 @@ namespace thermolang
 
     bool EnergyType::is_compatible_with(const Type &other) const
     {
+        // An EnergyType is compatible with another EnergyType if their variables match
         if (const EnergyType *other_energy = dynamic_cast<const EnergyType *>(&other))
         {
-            if (var_types_.size() != other_energy->var_types().size())
-            {
+            if (var_types_.size() != other_energy->var_types_.size())
                 return false;
-            }
-
             for (size_t i = 0; i < var_types_.size(); ++i)
             {
-                if (!var_types_[i]->is_compatible_with(*other_energy->var_types()[i]))
-                {
+                if (!var_types_[i]->is_compatible_with(*other_energy->var_types_[i]))
                     return false;
-                }
             }
-
             return true;
         }
+        // 1. The function's parameters match the energy type's variables.
+        // 2. The function's return type is 'float'.
         if (const FunctionType *other_func = dynamic_cast<const FunctionType *>(&other))
         {
             // Check return type: must be float.
-            if (auto return_prim = dynamic_cast<const PrimitiveType *>(&other_func->return_type()))
+            if (auto return_prim = dynamic_cast<const PrimitiveType *>(&(other_func->return_type())))
             {
                 if (return_prim->get_kind() != PrimitiveType::Kind::FLOAT)
-                {
                     return false;
-                }
             }
             else
             {
@@ -185,20 +177,17 @@ namespace thermolang
 
             // Check if parameter types match the energy function's variable types
             if (var_types_.size() != other_func->param_types().size())
-            {
                 return false;
-            }
             for (size_t i = 0; i < var_types_.size(); ++i)
             {
                 if (!var_types_[i]->is_compatible_with(*other_func->param_types()[i]))
-                {
                     return false;
-                }
             }
+
             // If all checks pass, it's compatible.
             return true;
         }
-        
+
         return false;
     }
 
@@ -211,7 +200,7 @@ namespace thermolang
                 result += ", ";
             result += var_types_[i]->to_string();
         }
-        result += ">";
+        result += " -> float>"; // Explicitly show it returns float
         return result;
     }
 

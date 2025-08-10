@@ -1,5 +1,6 @@
 #include "thermolang/compiler/IrGenerator.h"
 #include <stdexcept>
+#include <iostream>
 
 namespace thermolang::compiler
 {
@@ -73,13 +74,13 @@ namespace thermolang::compiler
 
     void IrGenerator::visit(const EnergyStmt &stmt)
     {
-        // Mark the function as an energy function
+        // This method handles `energy fn ...`
         auto function_ir = std::make_unique<ir::FunctionIR>();
         function_ir->name = stmt.function->name.get_lexeme();
         function_ir->is_energy_function = true;
         current_function_ = function_ir.get();
 
-        enter_scope(); // Scope for parameters
+        enter_scope();
 
         for (const auto &param : stmt.function->params)
         {
@@ -88,11 +89,16 @@ namespace thermolang::compiler
             define_variable(param.name.get_lexeme(), param_reg);
         }
 
-        // Create the entry block
         add_basic_block(std::make_unique<ir::BasicBlock>("entry"));
 
-        // Generate the energy function body with special handling
-        generate_energy_function_body(*stmt.function->body, stmt.function->params);
+        // Visit the function body normally. The instructions for the energy
+        // calculation will be added to the function's basic blocks.
+        analyze(*stmt.function->body);
+
+        // *** FIX: DO NOT add a `create_energy_func` instruction here. ***
+        // The function itself serves as the energy function definition. The IR for its body
+        // is the implementation. `create_energy_func` is for dynamically creating
+        // energy function objects from expressions, which is a different use case.
 
         exit_scope();
 
@@ -120,31 +126,27 @@ namespace thermolang::compiler
 
     void IrGenerator::visit(const ParallelStmt &stmt)
     {
-        // Create entry and exit blocks for the parallel region
+        std::cout << "  IrGenerator: Found parallel block." << std::endl;
         std::string body_label = new_label();
         std::string exit_label = new_label();
 
-        // Add the parallel for instruction
-        std::string iterator_reg = new_register();
+        // The "collection" for parallel is the set of statements inside.
+        // For IR, we can represent this as an integer count of parallel tasks.
+        int task_count = stmt.block->statements.size();
+
         std::string collection_reg = new_register();
+        add_instruction(std::make_unique<ir::LoadConstInstr>(collection_reg, (int64_t)task_count));
 
-        // Dummy collection for now - would be calculated from the actual collection
-        add_instruction(std::make_unique<ir::LoadConstInstr>(collection_reg, 8)); // Represent 8 items
+        std::string iterator_reg = new_register(); // Represents the task ID
 
-        add_instruction(std::make_unique<ir::ParallelForInstr>(
-            iterator_reg, collection_reg, body_label, exit_label));
+        add_instruction(std::make_unique<ir::ParallelForInstr>(iterator_reg, collection_reg, body_label, exit_label));
 
-        // Add the body block
+        // The body of the parallel_for contains all the statements from the block.
         add_basic_block(std::make_unique<ir::BasicBlock>(body_label));
-
-        // Process the parallel block
         analyze(*stmt.block);
+        add_instruction(std::make_unique<ir::JumpInstr>(exit_label)); // Each parallel task jumps to the end.
 
-        // Jump to exit
-        add_instruction(std::make_unique<ir::BinaryOpInstr>(
-            ir::OpCode::JUMP, "", exit_label, ""));
-
-        // Add the exit block
+        // Continue execution after the parallel block.
         add_basic_block(std::make_unique<ir::BasicBlock>(exit_label));
     }
 
