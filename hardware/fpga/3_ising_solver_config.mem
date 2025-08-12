@@ -1,0 +1,22 @@
+// ThermoLang Generated Problem Configuration for a 2x2 grid
+// Format: For each spin (row-major): h, J_north, J_south, J_east, J_west
+0800
+0000
+0000
+1000
+1000
+0800
+0000
+0000
+1000
+1000
+0800
+0000
+0000
+1000
+1000
+0800
+0000
+0000
+1000
+1000

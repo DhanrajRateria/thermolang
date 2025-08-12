@@ -6,7 +6,6 @@
 
 namespace thermolang::hardware
 {
-
     // Type alias for clarity in the API
     using Matrix = std::vector<std::vector<double>>;
     using Vector = std::vector<double>;
@@ -30,24 +29,17 @@ namespace thermolang::hardware
         bool converged;
     };
 
-    // Interface for controlling the Stochastic Processing Unit (SPU).
+    // Abstract interface for controlling a Stochastic Processing Unit (SPU).
+    // This can be implemented by a simulator or a real hardware driver.
     class SPUController
     {
     public:
-        // Constructor takes the complete problem definition.
-        explicit SPUController(SPUConfig config);
+        virtual ~SPUController() = default;
 
         // The primary entry point to run the annealing process.
-        ExecutionResult execute();
-
-    private:
-        // Calculates the total energy of a given spin configuration.
-        double calculate_energy(const std::vector<int> &spins) const;
-
-        // The configuration for the current problem.
-        SPUConfig config_;
+        virtual ExecutionResult execute() = 0;
     };
 
 } // namespace thermolang::hardware
 
-#endif // THERMOLANG_SPU_CONTROLLER_H
+#endif // THERMOLANG_SPU_CONTROLLER_H```

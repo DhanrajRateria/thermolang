@@ -1,4 +1,4 @@
-# ThermoLang Standard Library API v0.1
+# ThermoLang Standard Library API v0.2
 
 This document outlines the core functions and types available in the ThermoLang standard library.
 
@@ -20,26 +20,30 @@ These are the primary functions for working with probability distributions.
 
 ---
 
-## 2. Thermal Functions
+## 2. Thermodynamic Functions
 
-These functions interact with the thermodynamic properties of the hardware.
+These functions interact with the thermodynamic properties of the hardware or simulator.
 
 ---
-`thermal fn anneal(energy_func: E, schedule: CoolingSchedule) -> Configuration`
+`thermal fn anneal(energy_func: E, initial_temp: float, cooling_rate: float, steps: int) -> Configuration`
 *   **Description:** Performs simulated thermal annealing to find the minimum energy configuration of a system defined by `energy_func`. This is a blocking call that executes the full annealing schedule.
 *   `energy_func`: An `energy` function that defines the problem landscape. The function signature determines the variables to be optimized.
-*   `schedule`: A `CoolingSchedule` struct object, which must contain `initial_temp: float`, `cooling_rate: float`, and `steps: int`.
+*   `initial_temp`: The starting temperature for the annealing process.
+*   `cooling_rate`: The multiplicative factor to reduce the temperature at each step (e.g., 0.95).
+*   `steps`: The total number of annealing steps to perform.
 *   `Config`: Returns a `Configuration` object containing the state of the variables that minimized the energy.
 
 ---
-`stochastic fn sample(dist: D) -> T`
-*   **Description:** Draws a single, independent sample from the given distribution object. If called within a `thermal` block, the sampling process may be influenced by the ambient temperature.
-*   `D`: A type that conforms to `distribution<T, ...>`.
-*   `T`: The underlying type of the distribution (e.g., `float`).
-*   **Example:** `let value: float = sample(my_gaussian_dist);`
+
+## 3. Utility Functions
+
+---
+`fn print(value: T) -> void`
+*   **Description:** A utility function to print values during simulation. The compiler will often ignore this for hardware targets.
+*   `T`: Any primitive type (`int`, `float`, `bool`, `string`).
 ---
 
-## 3. Hardware Annotation (Future Feature)
+## 4. Hardware Annotation (Future Feature)
 
 Annotations will provide hints to the compiler for hardware-specific optimizations.
 

@@ -1,5 +1,5 @@
 add_library(ThermoLangHardware
-    SPUController.cpp
+    SPUSimulator.cpp
 )
 
 target_include_directories(ThermoLangHardware PUBLIC

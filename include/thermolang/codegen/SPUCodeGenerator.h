@@ -2,7 +2,7 @@
 #define THERMOLANG_SPU_CODE_GENERATOR_H
 
 #include "thermolang/codegen/CodeGenerator.h"
-#include "thermolang/hardware/SPUController.h"
+#include "thermolang/hardware/SPUSimulator.h"
 #include <map>
 
 namespace thermolang::codegen

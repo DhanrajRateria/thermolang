@@ -1,0 +1,4 @@
+// ThermoLang Generated Annealing Schedule
+initial_temp 3.465736
+cooling_rate 0.950000
+steps 4000

@@ -12,6 +12,8 @@ namespace thermolang::codegen
         ss_ << "import numpy as np\n";
         ss_ << "import sys\n\n";
 
+        ss_ << "def print(value):\n    pass\n\n";
+
         // --- Simulation Runtime ---
         ss_ << R"PY(
 def simulate_annealing(energy_function, initial_state, schedule):
@@ -29,7 +31,7 @@ def simulate_annealing(energy_function, initial_state, schedule):
         steps = schedule['steps']
         cooling_rate = schedule['cooling_rate']
 
-        print(f"Starting annealing. Initial Energy: {current_energy:.4f}, Temp: {temp:.4f}", flush=True)
+        print("Starting annealing. Initial Energy: {0:.4f}, Temp: {1:.4f}".format(current_energy, temp))
 
         for i in range(steps):
             proposed_state = np.copy(current_state)
@@ -48,17 +50,18 @@ def simulate_annealing(energy_function, initial_state, schedule):
                     best_state = np.copy(current_state)
                     best_energy = current_energy
             
-            # Early termination to speed up test
-            if i >= 10:  # Just do a few iterations for testing
-                break
-                
             temp *= cooling_rate
 
-        print(f"Finished annealing. Best Energy Found: {best_energy:.4f}", flush=True)
+        print("Finished annealing. Best Energy Found: {0:.4f}".format(best_energy))
+        
+        # --- Machine-Readable Final State Output ---
+        final_state_str = ', '.join(map(str, best_state.astype(int)))
+        print("[FINAL_STATE]: [{0}]".format(final_state_str))
+        
         return best_state.tolist()
     except Exception as e:
-        print(f"Error in simulate_annealing: {e}", flush=True)
-        return [-1, -1, -1, -1]  # Return a default value on error
+        print("Error in simulate_annealing: {0}".format(e))
+        return [-1, -1, -1, -1]
 )PY";
 
         // --- Generated Program ---

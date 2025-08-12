@@ -23,9 +23,11 @@
 // --- Code Generator Headers ---
 #include "thermolang/codegen/CodeGenerator.h"
 #include "thermolang/codegen/SPUCodeGenerator.h"
+#include "thermolang/codegen/SPICECodeGenerator.h"
+#include "thermolang/codegen/FPGACodeGenerator.h"
 
 // The primary compilation pipeline function.
-void run(const std::string &source, const std::string &target, bool enable_optimizations)
+void run(const std::string &source, const std::string &target, bool enable_optimizations, const std::string &base_output_filename)
 {
     // === Phase 1: Frontend ===
     thermolang::Lexer lexer(source);
@@ -59,11 +61,6 @@ void run(const std::string &source, const std::string &target, bool enable_optim
     std::cout << "\n--- IR Generation (Before Optimization) ---" << std::endl;
     thermolang::compiler::IrGenerator ir_gen;
     auto ir_program = ir_gen.generate(ast);
-    for (const auto &func_ir : ir_program)
-    {
-        std::cout << func_ir->toString();
-    }
-    std::cout << "------------------------------------------" << std::endl;
 
     if (enable_optimizations)
     {
@@ -100,36 +97,76 @@ void run(const std::string &source, const std::string &target, bool enable_optim
     }
 
     // === Phase 3: Code Generation ===
+    std::string generated_code;
+    std::string output_filename;
     if (target == "sim")
     {
         std::cout << "\n--- Code Generation (Python Simulation Target) ---\n";
         thermolang::codegen::SimulationCodeGenerator code_gen;
-        std::string python_code = code_gen.generate(ir_program);
-        std::cout << python_code << std::endl;
-
-        std::ofstream out_file("program_sim.py");
-        out_file << python_code;
-        out_file.close();
-        std::cout << ">>> Simulation code written to program_sim.py" << std::endl;
+        generated_code = code_gen.generate(ir_program);
+        output_filename = base_output_filename + "_sim.py";
     }
     else if (target == "spu")
     {
         std::cout << "\n--- Code Generation (SPU C++ Target) ---\n";
         thermolang::codegen::SPUCodeGenerator code_gen;
-        std::string cpp_code = code_gen.generate(ir_program);
-        std::cout << cpp_code << std::endl;
-
-        std::ofstream out_file("program_spu.cpp");
-        out_file << cpp_code;
-        out_file.close();
-        std::cout << ">>> SPU C++ code written to program_spu.cpp" << std::endl;
+        generated_code = code_gen.generate(ir_program);
+        output_filename = base_output_filename + "_spu.cpp";
     }
+    else if (target == "spice")
+    {
+        std::cout << "\n--- Code Generation (SPICE Netlist Target) ---\n";
+        thermolang::codegen::SPICECodeGenerator code_gen;
+        generated_code = code_gen.generate(ir_program);
+        output_filename = base_output_filename + ".spice";
+    }
+    else if (target == "fpga")
+    {
+        std::cout << "\n--- Code Generation (FPGA Config Target) ---\n";
+        thermolang::codegen::FPGACodeGenerator code_gen;
+        if (code_gen.generate(ir_program, base_output_filename))
+        {
+            std::cout << ">>> FPGA output written to " << base_output_filename << "_config.mem and " << base_output_filename << "_schedule.txt" << std::endl;
+        }
+        else
+        {
+            std::cerr << "ERROR: Failed to generate FPGA configuration files." << std::endl;
+        }
+        return; // FPGA generator writes its own files, so we return early.
+    }
+    else
+    {
+        std::cout << "\n--- IR Generation Only (No Backend Target) ---\n";
+        std::stringstream ss;
+        for (const auto &func_ir : ir_program)
+        {
+            ss << func_ir->toString();
+        }
+        generated_code = ss.str();
+        output_filename = base_output_filename + ".ir";
+    }
+
+    std::cout << generated_code << std::endl;
+
+    std::ofstream out_file(output_filename);
+    out_file << generated_code;
+    out_file.close();
+    std::cout << ">>> Output written to " << output_filename << std::endl;
 }
 
-// Helper to read a file and pass its contents to the run function.
+// Helper to get the base name for output files
+std::string get_output_base_name(const std::string &path)
+{
+    size_t last_slash = path.find_last_of("/\\");
+    std::string filename = (last_slash == std::string::npos) ? path : path.substr(last_slash + 1);
+    size_t last_dot = filename.find_last_of('.');
+    return (last_dot == std::string::npos) ? filename : filename.substr(0, last_dot);
+}
+
+// Helper to run a file and pass its contents to the run function.
 void run_file(const std::string &path, const std::string &target, bool enable_optimizations)
 {
-    std::cout << "Compiling: " << path << std::endl;
+    std::cout << "Compiling: " << path << " for target: " << target << std::endl;
     std::ifstream file(path);
     if (!file.is_open())
     {
@@ -138,7 +175,17 @@ void run_file(const std::string &path, const std::string &target, bool enable_op
     }
     std::stringstream buffer;
     buffer << file.rdbuf();
-    run(buffer.str(), target, enable_optimizations);
+
+    std::string base_name = get_output_base_name(path);
+    // std::string extension = ".ir";
+    // if (target == "sim")
+    //     extension = "_sim.py";
+    // if (target == "spu")
+    //     extension = "_spu.cpp";
+    // if (target == "spice")
+    //     extension = ".spice";
+
+    run(buffer.str(), target, enable_optimizations, base_name);
     std::cout << std::endl;
 }
 
@@ -147,8 +194,8 @@ int main(int argc, char *argv[])
 {
     if (argc < 2)
     {
-        std::cerr << "ThermoLang Compiler v0.5" << std::endl;
-        std::cerr << "Usage: thermolangc <file> [--target=sim|spu] [--no-opts]" << std::endl;
+        std::cerr << "ThermoLang Compiler v0.6" << std::endl;
+        std::cerr << "Usage: thermolangc <file> [--target=sim|spu|spice] [--no-opts]" << std::endl;
         return 64;
     }
 
@@ -156,21 +203,17 @@ int main(int argc, char *argv[])
     std::string target = "ir_only";
     bool optimizations_enabled = true; // Optimizations are ON by default.
 
-    // Parse command-line arguments.
-    if (argc > 2)
+    for (int i = 2; i < argc; ++i)
     {
-        for (int i = 2; i < argc; ++i)
+        std::string arg = argv[i];
+        std::string prefix = "--target=";
+        if (arg.rfind(prefix, 0) == 0)
         {
-            std::string arg = argv[i];
-            std::string prefix = "--target=";
-            if (arg.rfind(prefix, 0) == 0)
-            {
-                target = arg.substr(prefix.length());
-            }
-            else if (arg == "--no-opts")
-            {
-                optimizations_enabled = false;
-            }
+            target = arg.substr(prefix.length());
+        }
+        else if (arg == "--no-opts")
+        {
+            optimizations_enabled = false;
         }
     }
 

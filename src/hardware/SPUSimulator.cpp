@@ -1,4 +1,4 @@
-#include "thermolang/hardware/SPUController.h"
+#include "thermolang/hardware/SPUSimulator.h"
 #include <random>
 #include <cmath>
 #include <iostream>
@@ -7,9 +7,9 @@
 namespace thermolang::hardware
 {
 
-    SPUController::SPUController(SPUConfig config) : config_(std::move(config)) {}
+    SPUSimulator::SPUSimulator(SPUConfig config) : config_(std::move(config)) {}
 
-    double SPUController::calculate_energy(const std::vector<int> &spins) const
+    double SPUSimulator::calculate_energy(const std::vector<int> &spins) const
     {
         double coupling_energy = 0.0;
         double field_energy = 0.0;
@@ -34,7 +34,7 @@ namespace thermolang::hardware
         return -(coupling_energy + field_energy);
     }
 
-    ExecutionResult SPUController::execute()
+    ExecutionResult SPUSimulator::execute()
     {
         std::cout << "[SPU SIM] Starting simulated annealing..." << std::endl;
         size_t num_spins = config_.local_field.size();
