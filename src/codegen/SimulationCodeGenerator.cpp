@@ -12,7 +12,11 @@ namespace thermolang::codegen
         ss_ << "import numpy as np\n";
         ss_ << "import sys\n\n";
 
-        ss_ << "def print(value):\n    pass\n\n";
+        // Save original print and create debug_print but don't override print
+        ss_ << "original_print = print  # Save Python's print function\n";
+        ss_ << "def debug_print(*args, **kwargs):\n";
+        ss_ << "    original_print(*args, **kwargs)\n";
+        ss_ << "    sys.stdout.flush()\n\n";
 
         // --- Simulation Runtime ---
         ss_ << R"PY(
@@ -31,7 +35,7 @@ def simulate_annealing(energy_function, initial_state, schedule):
         steps = schedule['steps']
         cooling_rate = schedule['cooling_rate']
 
-        print("Starting annealing. Initial Energy: {0:.4f}, Temp: {1:.4f}".format(current_energy, temp))
+        original_print("Starting annealing. Initial Energy: {0:.4f}, Temp: {1:.4f}".format(current_energy, temp))
 
         for i in range(steps):
             proposed_state = np.copy(current_state)
@@ -52,26 +56,34 @@ def simulate_annealing(energy_function, initial_state, schedule):
             
             temp *= cooling_rate
 
-        print("Finished annealing. Best Energy Found: {0:.4f}".format(best_energy))
+        original_print("Finished annealing. Best Energy Found: {0:.4f}".format(best_energy))
         
         # --- Machine-Readable Final State Output ---
         final_state_str = ', '.join(map(str, best_state.astype(int)))
-        print("[FINAL_STATE]: [{0}]".format(final_state_str))
+        original_print("[FINAL_STATE]: [{0}]".format(final_state_str))
         
         return best_state.tolist()
     except Exception as e:
-        print("Error in simulate_annealing: {0}".format(e))
+        original_print("Error in simulate_annealing: {0}".format(e))
         return [-1, -1, -1, -1]
 )PY";
 
-        // --- Generated Program ---
+        // Generate all function definitions FIRST
         for (const auto &func : program)
         {
             generate_function(*func);
         }
 
-        // We don't need a main() call at the end of the file,
-        // because we'll add our own main wrapper in the test
+        ss_ << "\nif __name__ == '__main__':\n";
+        ss_ << "    try:\n";
+        ss_ << "        original_print('ThermoLang Python Simulation Starting')\n";
+        ss_ << "        result = main()\n";
+        ss_ << "        original_print('Simulation completed successfully')\n";
+        ss_ << "        original_print('Final result:', result)\n";
+        ss_ << "    except Exception as e:\n";
+        ss_ << "        original_print('Error in simulation:')\n";
+        ss_ << "        import traceback\n";
+        ss_ << "        traceback.print_exc()\n";
 
         return ss_.str();
     }
@@ -101,6 +113,11 @@ def simulate_annealing(energy_function, initial_state, schedule):
 
     void SimulationCodeGenerator::generate_function(const ir::FunctionIR &function)
     {
+        std::string func_name = function.name;
+        if (func_name == "print")
+        {
+            func_name = "thermo_print";
+        }
         ss_ << "def " << function.name << "(";
         for (size_t i = 0; i < function.parameters.size(); ++i)
         {

@@ -151,7 +151,7 @@ namespace thermolang::codegen
 
         ss_ << "\n* --- Analysis Directives --- \n";
         // Transient analysis to see the system settle
-        ss_ << ".TRAN 1us 100ms UIC\n"; // Run for 100ms, starting from user-initial conditions if any
+        ss_ << ".TRAN 0 100ms 0 1us\n"; // Run for 100ms, starting from user-initial conditions if any
 
         // Noise analysis
         ss_ << "* To run noise analysis, uncomment the line below and specify an output node.\n";
