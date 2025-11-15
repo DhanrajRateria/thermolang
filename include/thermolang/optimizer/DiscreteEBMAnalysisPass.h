@@ -8,7 +8,7 @@
 namespace thermolang::optimizer
 {
 
-    class IsingModelPass : public IRPass
+    class DiscreteEBMAnalysisPass : public IRPass
     {
     public:
         bool run(ir::FunctionIR &function_ir) override;

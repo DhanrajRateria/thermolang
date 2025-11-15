@@ -1,4 +1,4 @@
-#include "thermolang/optimizer/IsingModelPass.h"
+#include "thermolang/optimizer/DiscreteEBMAnalysisPass.h"
 #include <iostream>
 #include <map>
 #include <vector>
@@ -56,7 +56,7 @@ namespace thermolang::optimizer
         return std::nullopt;
     }
 
-    bool IsingModelPass::run(ir::FunctionIR &function_ir)
+    bool DiscreteEBMAnalysisPass::run(ir::FunctionIR &function_ir)
     {
         if (!function_ir.is_energy_function)
         {
@@ -68,7 +68,7 @@ namespace thermolang::optimizer
         {
             for (const auto &instr : block->instructions)
             {
-                if (dynamic_cast<ir::IsingHamiltonianInstr *>(instr.get()))
+                if (dynamic_cast<ir::DiscreteEBMInstr *>(instr.get()))
                 {
                     return false;
                 }
@@ -201,7 +201,7 @@ namespace thermolang::optimizer
 
         // --- Rewrite the IR ---
         // Create the new, single instruction representing the entire Hamiltonian.
-        auto ising_instr = std::make_unique<ir::IsingHamiltonianInstr>(
+        auto ising_instr = std::make_unique<ir::DiscreteEBMInstr>(
             final_energy_reg, // The result is stored in the same register as the original return value.
             spin_operands,
             std::move(J),

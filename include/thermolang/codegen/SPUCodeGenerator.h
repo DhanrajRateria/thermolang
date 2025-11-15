@@ -16,7 +16,7 @@ namespace thermolang::codegen
 
     private:
         // Generates the C++ code for the SPUConfig struct initialization.
-        void generate_spu_config(const ir::IsingHamiltonianInstr &ising_instr,
+        void generate_spu_config(const ir::DiscreteEBMInstr &ising_instr,
                                  const ir::CallInstr &anneal_call);
 
         // Helper to format a C++ vector literal from IR data.

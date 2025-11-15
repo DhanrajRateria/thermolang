@@ -243,7 +243,7 @@ def simulate_annealing(energy_function, initial_state, schedule):
                 ss_ << ")\n";
             }
         }
-        else if (auto i = dynamic_cast<const ir::IsingHamiltonianInstr *>(&instr))
+        else if (auto i = dynamic_cast<const ir::DiscreteEBMInstr *>(&instr))
         {
             // This instruction contains the full problem definition. We generate a calculation
             // that uses the J matrix and h vector directly.

@@ -76,7 +76,9 @@ namespace thermolang::hardware
             double j_term = 0.0;
             for (size_t i = 0; i < num_spins; ++i)
             {
-                j_term += config_.coupling_matrix[spin_to_flip][i] * current_spins[i];
+                if (i == spin_to_flip) continue;
+                double j_val = (spin_to_flip < i) ? config_.coupling_matrix[spin_to_flip][i] : config_.coupling_matrix[i][spin_to_flip];
+                j_term += j_val * current_spins[i];
             }
             delta_energy = 2.0 * current_spins[spin_to_flip] * (j_term + h_term);
 

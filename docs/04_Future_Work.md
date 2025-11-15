@@ -8,7 +8,7 @@ The current Python backend (`--target=sim`) generates a self-contained NumPy-bas
 
 ### Implementation Plan
 1.  **New Code Generator:** Create `ThermoxCodeGenerator.cpp`.
-2.  **IR-to-API Mapping:** This generator would map the `IsingHamiltonianInstr` in the ThermoIR to the appropriate `thermox.RLCNetwork` or `thermox.IsingModel` setup calls.
+2.  **IR-to-API Mapping:** This generator would map the `DiscreteEBMInstr` in the ThermoIR to the appropriate `thermox.RLCNetwork` or `thermox.IsingModel` setup calls.
 3.  **Dependency Management:** The benchmarking script would need to be updated to `pip install thermox` and import it when running this new backend.
 
 ### Benefits
@@ -22,4 +22,4 @@ The current Python backend (`--target=sim`) generates a self-contained NumPy-bas
 
 ## 3. Support for Higher-Order Models
 
-Extend the language and compiler to support Polynomial Unconstrained Binary Optimization (PUBO) models, which involve interactions between more than two spins (e.g., `s1*s2*s3`). This would require significant extensions to the `IsingModelPass` and hardware architecture.
+Extend the language and compiler to support Polynomial Unconstrained Binary Optimization (PUBO) models, which involve interactions between more than two spins (e.g., `s1*s2*s3`). This would require significant extensions to the `DiscreteEBMAnalysisPass` and hardware architecture.

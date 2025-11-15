@@ -306,14 +306,14 @@ namespace thermolang::ir
         std::string toString() const override;
     };
 
-    struct IsingHamiltonianInstr : Instruction
+    struct DiscreteEBMInstr : Instruction
     {
         std::string result_reg;
         std::vector<Operand> spins;                // Registers holding the spin variables
         std::vector<std::vector<double>> J_matrix; // Coupling matrix
         std::vector<double> h_vector;              // External field vector
 
-        IsingHamiltonianInstr(std::string result, std::vector<Operand> s,
+        DiscreteEBMInstr(std::string result, std::vector<Operand> s,
                               std::vector<std::vector<double>> J, std::vector<double> h)
             : Instruction(OpCode::CREATE_ENERGY_FUNC), // Re-using an appropriate OpCode
               result_reg(std::move(result)), spins(std::move(s)),

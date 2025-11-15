@@ -5,7 +5,7 @@ add_library(ThermoLangOptimizer
     EnergyFunctionOptimizer.cpp
     CircuitTopologyOptimizer.cpp
     VarianceTrackingPass.cpp
-    IsingModelPass.cpp
+    DiscreteEBMAnalysisPass.cpp
     ThermalSchedulingPass.cpp
     ParallelizationPass.cpp
 )

@@ -43,7 +43,7 @@ namespace thermolang::codegen
 
         // --- Find the key IR instructions ---
         const ir::CallInstr *anneal_call = nullptr;
-        const ir::IsingHamiltonianInstr *ising_instr = nullptr;
+        const ir::DiscreteEBMInstr *ising_instr = nullptr;
         const ir::FunctionIR *main_func = nullptr;
 
         for (const auto &func : program)
@@ -85,7 +85,7 @@ namespace thermolang::codegen
             {
                 if (func->basic_blocks.size() == 1 && func->basic_blocks[0]->instructions.size() == 2)
                 {
-                    ising_instr = dynamic_cast<ir::IsingHamiltonianInstr *>(func->basic_blocks[0]->instructions[0].get());
+                    ising_instr = dynamic_cast<ir::DiscreteEBMInstr *>(func->basic_blocks[0]->instructions[0].get());
                 }
                 break;
             }
@@ -98,7 +98,7 @@ namespace thermolang::codegen
         return ss_.str();
     }
 
-    void SPICECodeGenerator::generate_ising_netlist(const ir::IsingHamiltonianInstr &ising_instr, const ir::CallInstr &anneal_call)
+    void SPICECodeGenerator::generate_ising_netlist(const ir::DiscreteEBMInstr &ising_instr, const ir::CallInstr &anneal_call)
     {
         const double R_BASE = 1e3;  // Base resistance of 1kOhm for scaling
         const double I_BASE = 1e-6; // Base current of 1uA for local field

@@ -1,5 +1,5 @@
 #include "thermolang/codegen/SPUCodeGenerator.h"
-#include "thermolang/hardware/SPUController.h" // For Matrix/Vector types
+#include "thermolang/hardware/SPUSimulator.h" // For Matrix/Vector types
 #include <iomanip>
 
 namespace thermolang::codegen
@@ -67,7 +67,7 @@ namespace thermolang::codegen
 
         // --- Find the key IR instructions ---
         const ir::CallInstr *anneal_call = nullptr;
-        const ir::IsingHamiltonianInstr *ising_instr = nullptr;
+        const ir::DiscreteEBMInstr *ising_instr = nullptr;
 
         const ir::FunctionIR *main_func = nullptr;
         for (const auto &func : program)
@@ -110,7 +110,7 @@ namespace thermolang::codegen
                 // An Ising-optimized function should have exactly two instructions: IsingHamiltonian and Return.
                 if (func->basic_blocks.size() == 1 && func->basic_blocks[0]->instructions.size() == 2)
                 {
-                    ising_instr = dynamic_cast<ir::IsingHamiltonianInstr *>(func->basic_blocks[0]->instructions[0].get());
+                    ising_instr = dynamic_cast<ir::DiscreteEBMInstr *>(func->basic_blocks[0]->instructions[0].get());
                 }
                 break;
             }

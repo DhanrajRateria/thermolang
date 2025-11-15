@@ -1,3 +1,4 @@
+// include/thermolang/hardware/SPUController.h (MODIFIED)
 #ifndef THERMOLANG_SPU_CONTROLLER_H
 #define THERMOLANG_SPU_CONTROLLER_H
 
@@ -6,40 +7,38 @@
 
 namespace thermolang::hardware
 {
-    // Type alias for clarity in the API
+    // Type aliases remain the same
     using Matrix = std::vector<std::vector<double>>;
     using Vector = std::vector<double>;
 
-    // Configuration structure for an SPU annealing run.
-    // This is what the ThermoLang compiler will generate.
+    // SPUConfig remains the same
     struct SPUConfig
     {
-        Matrix coupling_matrix; // J matrix for the Ising model
-        Vector local_field;     // h vector for the local magnetic field
+        Matrix coupling_matrix;
+        Vector local_field;
         double initial_temp;
         double cooling_rate;
         int steps;
     };
 
-    // Represents the final result from an SPU execution.
+    // ExecutionResult remains the same
     struct ExecutionResult
     {
         double final_energy;
-        std::vector<int> final_state; // Vector of spins {-1, 1}
+        std::vector<int> final_state;
         bool converged;
     };
 
-    // Abstract interface for controlling a Stochastic Processing Unit (SPU).
-    // This can be implemented by a simulator or a real hardware driver.
+    // SPUController is now a pure virtual interface
     class SPUController
     {
     public:
         virtual ~SPUController() = default;
 
-        // The primary entry point to run the annealing process.
+        // Pure virtual execute method. Any implementation (simulator or real driver) must provide this.
         virtual ExecutionResult execute() = 0;
     };
 
 } // namespace thermolang::hardware
 
-#endif // THERMOLANG_SPU_CONTROLLER_H```
+#endif // THERMOLANG_SPU_CONTROLLER_H

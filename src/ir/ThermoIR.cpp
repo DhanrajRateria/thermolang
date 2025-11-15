@@ -151,7 +151,7 @@ namespace thermolang::ir
         return ss.str();
     }
 
-    std::string IsingHamiltonianInstr::toString() const
+    std::string DiscreteEBMInstr::toString() const
     {
         std::stringstream ss;
         ss << "    " << result_reg << " = ising_hamiltonian spins=[";

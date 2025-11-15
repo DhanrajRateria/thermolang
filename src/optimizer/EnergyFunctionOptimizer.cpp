@@ -24,7 +24,7 @@ namespace thermolang::optimizer
         {
             for (const auto &instr : block->instructions)
             {
-                if (dynamic_cast<ir::IsingHamiltonianInstr *>(instr.get()) ||
+                if (dynamic_cast<ir::DiscreteEBMInstr *>(instr.get()) ||
                     dynamic_cast<ir::QuadraticFormInstr *>(instr.get()))
                 {
                     std::cout << "  Skipping EnergyFunctionPass; already optimized to a high-level form." << std::endl;

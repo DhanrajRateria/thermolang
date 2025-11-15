@@ -14,7 +14,7 @@
 #include "thermolang/optimizer/OptimizationManager.h"
 #include "thermolang/optimizer/Passes.h"
 #include "thermolang/optimizer/ConstantFoldingPass.h"
-#include "thermolang/optimizer/IsingModelPass.h"
+#include "thermolang/optimizer/DiscreteEBMAnalysisPass.h"
 #include "thermolang/optimizer/EnergyFunctionOptimizer.h"
 #include "thermolang/optimizer/CircuitTopologyOptimizer.h"
 #include "thermolang/optimizer/VarianceTrackingPass.h"
@@ -69,7 +69,7 @@ void run(const std::string &source, const std::string &target, bool enable_optim
 
         // Register all optimizer passes.
         opt_manager.add_pass(std::make_unique<thermolang::optimizer::ConstantFoldingPass>());
-        opt_manager.add_pass(std::make_unique<thermolang::optimizer::IsingModelPass>());
+        opt_manager.add_pass(std::make_unique<thermolang::optimizer::DiscreteEBMAnalysisPass>());
         opt_manager.add_pass(std::make_unique<thermolang::optimizer::EnergyFunctionPass>());
         opt_manager.add_pass(std::make_unique<thermolang::optimizer::CircuitTopologyPass>());
         opt_manager.add_pass(std::make_unique<thermolang::optimizer::VarianceTrackingPass>());
