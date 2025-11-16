@@ -57,7 +57,7 @@ namespace thermolang::ir
         THERMAL_STEP,
         VARIANCE_TRACK,
         QUADRATIC_FORM,
-        ISING_HAMILTONIAN,
+        DISCRETE_EBM,
     };
 
     // Base class for all IR instructions.

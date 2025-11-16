@@ -234,6 +234,32 @@ def run_spice_backend():
     except Exception as e:
         print(f"SPICE backend error: {type(e).__name__}: {e}")
         return None
+    
+def run_thrml_backend():
+    """Runs the thrml library backend and returns the final state."""
+    print("\n--- Running Extropic's thrml Backend ---")
+    output_file = Path(EXAMPLE_FILE.stem + "_thrml.py")
+    compile_cmd = [str(COMPILER_PATH), str(EXAMPLE_FILE), "--target=thrml"]
+    
+    try:
+        # Generate the Python script
+        subprocess.run(compile_cmd, check=True, capture_output=True, text=True)
+        
+        # Run the generated script
+        run_cmd = ["python3", str(output_file)]
+        result = subprocess.run(run_cmd, check=True, capture_output=True, text=True, timeout=60) # Longer timeout for JAX
+        
+        print(result.stdout)
+        return parse_final_state(result.stdout)
+    
+    except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as e:
+        print("thrml backend failed.")
+        if hasattr(e, 'stdout'): print("STDOUT:", e.stdout)
+        if hasattr(e, 'stderr'): print("STDERR:", e.stderr)
+        return None
+    except Exception as e:
+        print(f"Unexpected error in thrml backend: {type(e).__name__}: {e}")
+        return None
 
 def main():
     """Main benchmark orchestration function."""
@@ -254,6 +280,7 @@ def main():
     cpp_result = run_cpp_backend()
     fpga_result = run_verilog_backend()
     spice_result = run_spice_backend()
+    thrml_result = run_thrml_backend()
     
     # Display comparison results
     print("\n" + "="*50)
@@ -272,6 +299,7 @@ def main():
     print_result("C++ SPU Sim", cpp_result)
     print_result("Verilog FPGA", fpga_result)
     print_result("SPICE", spice_result)
+    print_result("thrml lib", thrml_result)
     
     print("="*50)
     
@@ -280,7 +308,8 @@ def main():
         "Python": python_result,
         "C++ SPU Sim": cpp_result, 
         "Verilog FPGA": fpga_result,
-        "SPICE": spice_result
+        "SPICE": spice_result,
+        "thrml lib": thrml_result
     }
     
     valid_results = {k: v for k, v in results.items() if v}

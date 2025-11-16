@@ -4,6 +4,7 @@ add_library(ThermoLangCodeGen
     SPUCodeGenerator.cpp
     SPICECodeGenerator.cpp
     FPGACodeGenerator.cpp
+    ThrmlCodeGenerator.cpp
 )
 
 target_include_directories(ThermoLangCodeGen PUBLIC

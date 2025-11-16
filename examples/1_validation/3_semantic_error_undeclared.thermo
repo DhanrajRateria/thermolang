@@ -1,2 +1,0 @@
-// Semantic Error: 'y' is used before it is declared.
-let x = y + 5;

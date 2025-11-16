@@ -1,3 +1,0 @@
-// Semantic Error: 'z' is declared twice in the same scope.
-let z = 10;
-let z = 20;

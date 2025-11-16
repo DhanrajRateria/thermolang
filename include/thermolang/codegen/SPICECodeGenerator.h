@@ -13,8 +13,8 @@ namespace thermolang::codegen
         std::string generate(const std::vector<std::unique_ptr<ir::FunctionIR>> &program) override;
 
     private:
-        // Generates the netlist components for the Ising model.
-        void generate_ising_netlist(const ir::DiscreteEBMInstr &ising_instr, const ir::CallInstr &anneal_call);
+        // Generates the netlist components for the EBM model.
+        void generate_ebm_netlist(const ir::DiscreteEBMInstr &ebm_instr, const ir::CallInstr &anneal_call);
 
         std::stringstream ss_;
     };

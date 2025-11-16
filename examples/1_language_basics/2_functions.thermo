@@ -1,0 +1,21 @@
+// This example demonstrates function definitions and calls.
+
+// A standard function that performs a deterministic calculation.
+fn add_floats(a: float, b: float) -> float {
+    return a + b;
+}
+
+// A function that returns no value (void).
+fn print_greeting() -> void {
+    // The 'print' function is a built-in for simulation output.
+    // It is ignored by hardware backends.
+    print("Hello from ThermoLang!");
+}
+
+fn main() -> void {
+    let x = 5.5;
+    let y = 10.2;
+    let sum = add_floats(x, y);
+
+    print_greeting();
+}

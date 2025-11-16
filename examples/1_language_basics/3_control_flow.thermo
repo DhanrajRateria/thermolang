@@ -1,0 +1,25 @@
+// This example demonstrates if/else and while loops.
+
+fn check_value(val: int) -> int {
+    let result: int;
+    if (val > 10) {
+        result = 1;
+    } else {
+        result = 0;
+    }
+    return result;
+}
+
+fn count_down(start: int) -> void {
+    let i = start;
+    while (i > 0) {
+        print(i);
+        i = i - 1;
+    }
+    print("Blast off!");
+}
+
+fn main() -> void {
+    let check = check_value(15);
+    count_down(5);
+}

@@ -1,0 +1,22 @@
+// The MAX-CUT problem is a classic optimization problem that maps well to
+// thermodynamic computers. The goal is to partition the nodes of a graph
+// into two sets (spins {-1, 1}) to maximize the number of edges crossing the cut.
+
+// This is equivalent to minimizing the Ising Hamiltonian: E = -Σ J_ij * s_i * s_j
+// where J_ij = -1 for all edges in the graph.
+
+// A 4-node complete graph (K4) for demonstration.
+energy fn max_cut_k4(s0: float, s1: float, s2: float, s3: float) -> float {
+    let J = -1.0; // Anti-ferromagnetic coupling encourages neighbors to have different spins.
+
+    // Sum over all edges in the complete graph.
+    let energy = J*s0*s1 + J*s0*s2 + J*s0*s3 + J*s1*s2 + J*s1*s3 + J*s2*s3;
+    
+    // The lowest energy state corresponds to the maximum cut.
+    return energy;
+}
+
+fn main() -> void {
+    // Find the optimal partition for the K4 graph.
+    let solution = thermal_anneal(max_cut_k4, 10.0, 0.95, 2000);
+}

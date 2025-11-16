@@ -1,6 +1,0 @@
-// examples/3_optimizations/2_quadratic_opt.thermo
-energy fn quadratic_energy(x: float, y: float) -> float {
-    let x_sq = x * x;
-    let y_sq = y * y;
-    return x_sq + y_sq;
-}

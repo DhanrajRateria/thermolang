@@ -1,0 +1,22 @@
+// This example demonstrates basic variable declarations and types in ThermoLang.
+
+// --- Primitive Types ---
+let integer_var: int = 10;
+let float_var: float = 3.14;
+let bool_var: bool = true;
+
+// --- Domain-Specific Types ---
+
+// A type alias for a Gaussian distribution over floats.
+type GaussianFloat = distribution<float>;
+
+// A type alias for a specific hardware topology.
+type GridCircuit = circuit<nodes=64, couplings="grid">;
+
+// --- Variable Declaration with Type Inference ---
+let inferred_int = 42;          // Type 'int' is inferred.
+let inferred_float = integer_var * float_var; // Type 'float' is inferred.
+
+fn main() -> void {
+    let local_var = inferred_float + 1.0;
+}

@@ -52,7 +52,7 @@ namespace thermolang::codegen
     {
         // --- 1. Find the essential IR instructions ---
         const ir::CallInstr *anneal_call = nullptr;
-        const ir::DiscreteEBMInstr *ising_instr = nullptr;
+        const ir::DiscreteEBMInstr *ebm_instr = nullptr;
         const ir::FunctionIR *main_func = nullptr;
 
         for (const auto &func : program)
@@ -84,11 +84,11 @@ namespace thermolang::codegen
             {
                 if (!func->basic_blocks.empty() && !func->basic_blocks[0]->instructions.empty())
                 {
-                    ising_instr = dynamic_cast<ir::DiscreteEBMInstr *>(func->basic_blocks[0]->instructions[0].get());
+                    ebm_instr = dynamic_cast<ir::DiscreteEBMInstr *>(func->basic_blocks[0]->instructions[0].get());
                 }
             }
         }
-        if (!ising_instr)
+        if (!ebm_instr)
             return false;
 
         // --- 2. Generate the Problem Configuration File (.mem) ---
@@ -97,9 +97,9 @@ namespace thermolang::codegen
             return false;
 
         const int FRAC_BITS = 12; // Must match the hardware parameter in spu_core.v
-        const auto &J = ising_instr->J_matrix;
-        const auto &h = ising_instr->h_vector;
-        int num_spins = ising_instr->spins.size();
+        const auto &J = ebm_instr->J_matrix;
+        const auto &h = ebm_instr->h_vector;
+        int num_spins = ebm_instr->spins.size();
         int grid_size = static_cast<int>(sqrt(num_spins));
 
         mem_file << "// ThermoLang Generated Problem Configuration for a " << grid_size << "x" << grid_size << " grid\n";

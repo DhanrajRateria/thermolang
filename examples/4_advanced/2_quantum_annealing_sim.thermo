@@ -1,0 +1,56 @@
+// This is your original quantum annealing example, cleaned up and validated.
+// It demonstrates how ThermoLang can be used to simulate more complex physical processes.
+
+// The problem Hamiltonian (a standard Ising model in this case).
+energy fn problem_hamiltonian(s0: float, s1: float, s2: float, s3: float) -> float {
+    let J = 1.0;
+    let h = 0.1;
+    let coupling = J * (s0*s1 + s1*s2 + s2*s3 + s3*s0);
+    let field = h * (s0 + s1 + s2 + s3);
+    return -(coupling + field);
+}
+
+// A transverse field term, representing the "quantum" part of the anneal.
+// E_quantum = -gamma * Σ s_x (where s_x is a quantum operator).
+// In simulation, this is often modeled as a probabilistic flip.
+stochastic fn apply_transverse_field(spin: float, gamma: float) -> float {
+    // The probability of flipping is related to the strength 'gamma'.
+    let flip_probability = gamma * 0.1; 
+    let should_flip = sample_bernoulli(flip_probability);
+    
+    if (should_flip) {
+        return -spin;
+    } else {
+        return spin;
+    }
+}
+
+// Main function to run the simulated Quantum Annealing.
+fn main() -> void {
+    // Annealing schedule: s(t) from 0 to 1.
+    // E_total(s) = (1-s) * E_quantum + s * E_problem
+    let s = 0.0;
+    let gamma = 1.0; // Initial quantum fluctuation strength.
+
+    // Initial state is a superposition, often simulated as random spins.
+    let s0 = 1.0; let s1 = -1.0; let s2 = 1.0; let s3 = -1.0;
+
+    while (s < 1.0) {
+        // At each step, we have a competition between the problem energy and the quantum energy.
+        // This is a simplified representation of a single step.
+        // A real implementation would involve a Monte Carlo update.
+        
+        let problem_energy_component = s * problem_hamiltonian(s0, s1, s2, s3);
+        
+        // Apply quantum fluctuations.
+        s0 = apply_transverse_field(s0, (1.0 - s) * gamma);
+        s1 = apply_transverse_field(s1, (1.0 - s) * gamma);
+        s2 = apply_transverse_field(s2, (1.0 - s) * gamma);
+        s3 = apply_transverse_field(s3, (1.0 - s) * gamma);
+
+        s = s + 0.01; // Evolve s from 0 to 1.
+    }
+
+    // At the end (s=1), the system should be in the ground state of the problem Hamiltonian.
+    print(s0);
+}

@@ -1,0 +1,17 @@
+// An 'energy function' is a core concept. It defines a problem's landscape.
+// The goal of many thermodynamic algorithms is to find the state that
+// minimizes this energy.
+
+// The `energy` keyword marks this function for special treatment by the compiler.
+// It must return a single `float` value representing the system's energy.
+energy fn simple_quadratic(x: float, y: float) -> float {
+    // This function defines a simple energy landscape that looks like a bowl.
+    // The minimum energy is at (x=0, y=0).
+    return x*x + y*y;
+}
+
+fn main() -> void {
+    // Energy functions can be called like normal functions to evaluate the
+    // energy of a specific state.
+    let energy_at_one_one = simple_quadratic(1.0, 1.0); // Result is 2.0
+}

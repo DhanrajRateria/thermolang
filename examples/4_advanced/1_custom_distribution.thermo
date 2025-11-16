@@ -1,0 +1,23 @@
+// This example shows how to build a custom probability distribution
+// using the language's stochastic primitives.
+
+// We will create a bimodal distribution by mixing two Gaussians.
+
+stochastic fn sample_bimodal(mean1: float, mean2: float, variance: float) -> float {
+    // 1. Flip a fair coin to decide which Gaussian to sample from.
+    let is_first_gaussian = sample_bernoulli(0.5);
+
+    // 2. Sample from the chosen Gaussian.
+    let result: float;
+    if (is_first_gaussian) {
+        result = sample_gaussian(mean1, variance);
+    } else {
+        result = sample_gaussian(mean2, variance);
+    }
+    return result;
+}
+
+fn main() -> void {
+    // Draw a single sample from a bimodal distribution with peaks at -5.0 and +5.0.
+    let sample = sample_bimodal(-5.0, 5.0, 1.0);
+}

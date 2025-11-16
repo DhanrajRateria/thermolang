@@ -73,8 +73,8 @@ namespace thermolang::ir
             return "thermal_step";
         case OpCode::VARIANCE_TRACK:
             return "variance_track";
-        case OpCode::ISING_HAMILTONIAN:
-            return "ising_hamiltonian";
+        case OpCode::DISCRETE_EBM:
+            return "discrete_ebm";
         default:
             return "unknown_op";
         }
@@ -154,7 +154,7 @@ namespace thermolang::ir
     std::string DiscreteEBMInstr::toString() const
     {
         std::stringstream ss;
-        ss << "    " << result_reg << " = ising_hamiltonian spins=[";
+        ss << "    " << result_reg << " = discrete_ebm spins=[";
         for (size_t i = 0; i < spins.size(); ++i)
         {
             ss << to_string(spins[i]) << (i == spins.size() - 1 ? "" : ", ");

@@ -1,241 +1,346 @@
-# ThermoLang: A Complete Language & Compiler System for Thermodynamic Computing
+<div align="center">
+  <h1>🔥 ThermoLang</h1>
+  <p><strong>A Complete Language & Compiler System for Thermodynamic Computing</strong></p>
+  
+  <p>
+    <a href="#quick-start">Quick Start</a> •
+    <a href="#features">Features</a> •
+    <a href="#documentation">Documentation</a> •
+    <a href="#examples">Examples</a> •
+    <a href="#contributing">Contributing</a>
+  </p>
 
-> **Democratizing thermodynamic computing through high-level programming abstractions**
+  <p>
+    <img src="https://img.shields.io/badge/version-1.0-blue.svg" alt="Version">
+    <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License">
+    <img src="https://img.shields.io/badge/C++-17-orange.svg" alt="C++17">
+  </p>
+</div>
 
-ThermoLang is the first complete domain-specific language (DSL) and compiler toolchain designed specifically for thermodynamic computing hardware. It bridges the critical gap between high-level probabilistic algorithms and low-level stochastic hardware implementations, enabling researchers to focus on algorithm design rather than circuit-level details.
+---
 
-## 🎯 Vision & Mission
+## 🎯 Vision
 
-Our mission is to accelerate thermodynamic computing research by providing essential software infrastructure that abstracts away hardware complexity. ThermoLang democratizes access to stochastic computing by enabling researchers to express complex energy models and annealing schedules in an intuitive, high-level language.
+ThermoLang democratizes thermodynamic computing by providing a high-level language and robust compiler toolchain that bridges the gap between probabilistic algorithms and physical stochastic hardware. Write once, deploy everywhere—from software simulation to synthesizable hardware.
 
-**Impact**: We estimate ThermoLang will accelerate research in the field by 3-5 years by removing the barriers between algorithmic innovation and hardware implementation.
+## 🌟 What is ThermoLang?
 
-## 🚀 Project Status: v1.0 Complete
+ThermoLang is the **first complete, open-source compiler** for thermodynamic computing. It translates high-level programs written in the `.thermo` language into optimized configurations for multiple backends, enabling researchers to focus on **algorithmic innovation** rather than low-level circuit parameter tuning.
 
-**✅ Full Toolchain Implemented**
+### Why ThermoLang?
 
-ThermoLang v1.0 represents a complete source-to-hardware compilation pipeline. The system successfully compiles high-level `.thermo` programs to multiple target backends, from pure software simulation to synthesizable hardware descriptions.
+- **🚀 Accelerate Research**: Spend time on algorithms, not hardware details
+- **🔄 Universal Compatibility**: One codebase, multiple execution targets
+- **🎓 Educational**: Learn thermodynamic computing principles with immediate feedback
+- **🏗️ Production Ready**: Validated through comprehensive benchmarking
+- **🤝 Ecosystem Integration**: Native support for Extropic AI's `thrml` library
 
-### Key Achievements
-- ✅ Complete language specification with formal grammar
-- ✅ Full compiler frontend (lexer, parser, semantic analyzer)
-- ✅ Multi-backend code generation
-- ✅ End-to-end validation framework
-- ✅ Comprehensive benchmarking suite
-- ✅ Production-ready toolchain
+---
 
-## 🛠 The ThermoLang Toolchain
+## ✨ Key Features
 
-The core compiler, `thermolangc`, supports four distinct compilation targets, each optimized for different use cases:
+### High-Level Language
+A declarative, domain-specific language for expressing:
+- Energy functions and Hamiltonians
+- Annealing schedules and cooling protocols
+- Probabilistic models and sampling strategies
+- Physical constraints and coupling parameters
 
-### 1. Python Simulation (`--target=sim`)
-**Purpose**: Rapid prototyping and algorithm validation
-- Generates self-contained Python scripts using NumPy
-- Ideal for research and development workflows
-- Fast iteration cycles for algorithm refinement
+### Advanced Multi-Stage Compiler
+- **Custom IR**: `ThermoIR` intermediate representation optimized for thermodynamic operations
+- **Domain-Specific Optimizations**: Automatic recognition of physical models (Discrete EBMs, Ising models, etc.)
+- **Type Safety**: Static analysis prevents physical inconsistencies
+- **Dead Code Elimination**: Removes unused circuit components
+
+### Multi-Target Backend System
+
+Generate optimized code for every stage of your development pipeline:
+
+| Target | Description | Use Case |
+|--------|-------------|----------|
+| `thrml` | Python + Extropic's JAX library | **Recommended** for ecosystem alignment and high-fidelity simulation |
+| `sim` | NumPy-based Python simulator | Rapid prototyping and algorithm development |
+| `spu` | High-performance C++ executable | Production deployments and large-scale experiments |
+| `spice` | Analog circuit netlist | Physical circuit analysis and validation |
+| `fpga` | Hardware configuration files | Real hardware implementation on FPGAs |
+
+---
+
+## 🚀 Quick Start
+
+### Prerequisites
 
 ```bash
-./build/thermolangc my_program.thermo --target=sim
+# Required
+- C++17 compiler (GCC 9+, Clang 10+, or MSVC 2019+)
+- CMake 3.14+
+- Python 3.8+
+- NumPy: pip install numpy
+
+# Recommended
+- Extropic's thrml library: pip install thrml
+- For SPICE: LTspice, ngspice, or similar
+- For FPGA: Xilinx Vivado or Intel Quartus
 ```
 
-### 2. C++ SPU Simulation (`--target=spu`)
-**Purpose**: High-performance detailed simulation
-- Generates optimized C++ code with hardware-accurate SPU simulation
-- Detailed modeling of Stochastic Processing Unit behavior
-- Performance-critical applications and validation
-
-```bash
-./build/thermolangc my_program.thermo --target=spu
-```
-
-### 3. SPICE Netlist (`--target=spice`)
-**Purpose**: Physical circuit simulation and analysis
-- Generates `.spice` netlists for analog circuit simulators
-- Compatible with LTspice, ngspice, and other SPICE tools
-- Enables circuit-level analysis and optimization
-
-```bash
-./build/thermolangc my_program.thermo --target=spice
-```
-
-### 4. FPGA Configuration (`--target=fpga`)
-**Purpose**: Hardware accelerator deployment
-- Generates memory initialization files (`.mem`, `.txt`)
-- Contains optimized J and h matrices plus annealing schedules
-- Ready for direct hardware deployment
-
-```bash
-./build/thermolangc my_program.thermo --target=fpga
-```
-
-## 📋 Prerequisites
-
-### Required Dependencies
-- **C++17 Compiler**: GCC 9+ or Clang 10+
-- **CMake**: Version 3.14 or higher
-- **Python**: 3.8+ with NumPy for simulation backends
-- **Git**: For version control and dependency management
-
-### Optional Dependencies
-- **Xilinx Vivado**: Required for FPGA synthesis and implementation
-- **SPICE Simulator**: LTspice or ngspice for circuit simulation
-- **Google Test**: Automatically downloaded for testing framework
-
-## 🔧 Installation & Setup
-
-### Quick Start
+### Installation
 
 ```bash
 # Clone the repository
 git clone https://github.com/DhanrajRateria/thermolang.git
 cd thermolang
 
-# Configure the build system
+# Configure with CMake
 cmake -B build -DCMAKE_BUILD_TYPE=Release
 
-# Build the complete toolchain
+# Build the compiler
 cmake --build build --parallel
 
 # Verify installation
 ./build/thermolangc --version
 ```
 
-### Development Build
+### Your First ThermoLang Program
 
-```bash
-# Configure for development (includes debugging symbols and tests)
-cmake -B build -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTS=ON
+Create `hello_thermo.thermo`:
 
-# Build with verbose output
-cmake --build build --parallel --verbose
-
-# Run the test suite
-cd build && ctest --parallel --verbose
-```
-
-## 🧪 Validation & Benchmarking
-
-### End-to-End Validation
-Run our comprehensive benchmark suite to validate all backends:
-
-```bash
-# Execute full benchmark suite
-python3 benchmarks/run_benchmarks.py
-
-# Run specific backend benchmarks
-python3 benchmarks/run_benchmarks.py --target=sim
-python3 benchmarks/run_benchmarks.py --target=spu --verbose
-```
-
-### Example Usage
-
-```bash
-# Compile a simple Ising model
-./build/thermolangc examples/ising_2d.thermo --target=sim --output=ising_sim.py
-
-# Generate FPGA configuration for quantum annealing
-./build/thermolangc examples/qaoa.thermo --target=fpga --output-dir=fpga_configs/
-
-# Create SPICE netlist for circuit analysis
-./build/thermolangc examples/boltzmann_machine.thermo --target=spice --optimize=2
-```
-
-## 📚 Language Overview
-
-### Core Language Features
-
-```thermolang
-// Define energy function for 2D Ising model
-model IsingModel {
-    lattice: Grid2D<8, 8>
-    coupling: Real = -1.0
-    field: Real = 0.5
-    
-    energy(spins: SpinArray) -> Real {
-        return -coupling * sum_neighbors(spins) - field * sum(spins)
-    }
-}
-
-// Specify annealing schedule
-schedule LinearAnnealing {
+```thermo
+model IsingSpinSystem {
+  spins: 4
+  coupling: -1.0
+  field: 0.5
+  
+  schedule {
     temperature: 10.0 -> 0.1
     steps: 1000
-    method: "exponential"
-}
-
-// Main computation
-solve IsingModel with LinearAnnealing {
-    initial_state: random_spins()
-    measurements: ["energy", "magnetization"]
-    output_format: "json"
+  }
 }
 ```
 
-### Type System Highlights
-- **Stochastic Types**: Native support for probability distributions
-- **Tensor Operations**: Built-in multidimensional array operations
-- **Energy Expressions**: Domain-specific constructs for Hamiltonians
-- **Schedule Types**: Temporal evolution specifications
+Compile and run:
 
-## 🔬 Research Contributions
+```bash
+# Compile to thrml backend
+./build/thermolangc hello_thermo.thermo --target=thrml
 
-This work advances the state-of-the-art in non-von Neumann computing through four key contributions:
-
-### 1. Novel Domain-Specific Language
-- **First-of-its-kind DSL** for thermodynamic computing
-- **Intuitive syntax** for energy-based and probabilistic algorithms
-- **Strong type system** preventing common stochastic computing errors
-
-### 2. Probabilistic-to-Physical Compilation
-- **Pioneering compiler** that translates abstract energy functions into physical implementations
-- **Multi-level optimization** from algorithmic to circuit level
-- **Verified correctness** across all compilation stages
-
-### 3. Complete End-to-End Toolchain
-- **Seamless workflow** from algorithm specification to hardware deployment
-- **Industrial-strength infrastructure** suitable for production use
-- **Extensive documentation** and examples for rapid adoption
-
-### 4. Multi-Backend Validation Framework
-- **Cross-platform verification** ensuring correctness across all targets
-- **Performance benchmarking** suite with detailed analytics
-- **Regression testing** to maintain quality across development cycles
-
-## 📖 Documentation
-
-Comprehensive documentation is available in the `/docs` directory:
-
-| Document | Description |
-|----------|-------------|
-| [Language Specification](docs/01_Language_Specification.md) | Complete formal grammar and syntax reference |
-| [Type System Guide](docs/02_Type_System.md) | Detailed stochastic type system documentation |
-| [Compiler Architecture](docs/compiler_architecture.md) | Internal design and implementation details |
-| [Backend Guide](docs/backends.md) | Target-specific compilation options and optimizations |
-| [Standard Library](docs/03_Standard_Library.md) | Built-in functions and types API reference |
-| [Tutorial Series](docs/tutorials/) | Step-by-step learning materials |
-| [Examples Collection](examples/) | Real-world use cases and sample programs |
-
-## 🤝 Contributing
-
-We enthusiastically welcome contributions from the research community! Whether you're interested in language design, compiler optimization, or applications development, there are many ways to get involved.
-
-### Getting Started
-1. **Read our [Contributing Guide](CONTRIBUTING.md)** for detailed instructions
-2. **Check the [Issues](https://github.com/DhanrajRateria/thermolang/issues)** for open tasks
-3. **Review the [Architecture Documentation](docs/compiler_architecture.md)** to understand the codebase
-4. **Join our [Discussions](https://github.com/DhanrajRateria/thermolang/discussions)** for community support
-
-### Development Areas
-- **Language Extensions**: New syntax features and type system enhancements
-- **Backend Development**: Additional compilation targets and optimizations
-- **Standard Library**: Built-in algorithms and utility functions
-- **Tooling**: IDE integration, debuggers, and profiling tools
-- **Documentation**: Tutorials, examples, and API improvements
-
-## 📄 License
-
-ThermoLang is released under the [MIT License](LICENSE), encouraging both academic research and commercial applications.
+# Execute the simulation
+python3 hello_thermo_thrml.py
+```
 
 ---
 
-**ThermoLang**: Enabling the future of probabilistic and thermodynamic computing through accessible, high-level programming abstractions.
+## 📚 Documentation
+
+### Language Reference
+
+The `.thermo` language supports:
+
+- **Variable Declarations**: `var spin: bool[8]`
+- **Energy Functions**: `energy = -J * sum(spin[i] * spin[i+1])`
+- **Constraints**: `constraint sum(spin) == 4`
+- **Schedules**: `anneal temperature from 10 to 0.1 in 1000 steps`
+- **Physical Models**: Built-in primitives for common architectures
+
+### Compilation Pipeline
+
+```
+┌─────────────┐
+│ .thermo     │
+│ Source File │
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│   Lexer     │  ← Tokenization
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│   Parser    │  ← AST Construction
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│  ThermoIR   │  ← Intermediate Representation
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│ Optimizer   │  ← Domain-Specific Optimizations
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│  Backends   │  ← Target Code Generation
+└─────────────┘
+     │
+     ├──► thrml (Python + JAX)
+     ├──► sim (Python + NumPy)
+     ├──► spu (C++)
+     ├──► spice (Netlist)
+     └──► fpga (Config Files)
+```
+
+### Command-Line Interface
+
+```bash
+# Basic compilation
+thermolangc input.thermo --target=thrml
+
+# With optimizations
+thermolangc input.thermo --target=spu -O3
+
+# Generate multiple targets
+thermolangc input.thermo --target=sim,thrml,spice
+
+# Verbose output for debugging
+thermolangc input.thermo --target=thrml --verbose
+
+# Display IR for inspection
+thermolangc input.thermo --emit-ir
+```
+
+---
+
+## 💡 Examples
+
+
+Browse the full example suite:
+- `examples/1_language_basic/` - Language fundamentals
+- `examples/2_core_concepts/` - The core concepts
+- `examples/3_algorithms/` - Common optimization problems
+- `examples/4_advanced/` - Physics simulations
+
+---
+
+## 🧪 Validation & Benchmarking
+
+ThermoLang v1.0 includes a comprehensive test suite that validates:
+- ✅ Correctness across all backends
+- ✅ Consistency with `thrml` reference implementation
+- ✅ Performance benchmarks
+- ✅ Hardware accuracy
+
+Run the full validation suite:
+
+```bash
+# Complete benchmark across all targets
+python3 benchmarks/run_benchmarks.py
+
+# Specific backend comparison
+python3 benchmarks/compare_backends.py --backends=thrml,sim,spu
+
+# Performance profiling
+python3 benchmarks/performance_test.py --target=spu
+```
+
+---
+
+## 🏗️ Architecture
+
+### The ThermoLang Ecosystem
+
+```
+                    ┌──────────────────┐
+                    │  .thermo Source  │
+                    └────────┬─────────┘
+                             │
+                    ┌────────▼─────────┐
+                    │  thermolangc     │
+                    │    Compiler      │
+                    └────────┬─────────┘
+                             │
+         ┌───────────────────┼───────────────────┐
+         │                   │                   │
+    ┌────▼────┐         ┌────▼────┐        ┌────▼────┐
+    │ thrml   │         │   sim   │        │   spu   │
+    │ Backend │         │ Backend │        │ Backend │
+    └────┬────┘         └────┬────┘        └────┬────┘
+         │                   │                   │
+    ┌────▼────┐         ┌────▼────┐        ┌────▼────┐
+    │  JAX    │         │  NumPy  │        │   C++   │
+    │Execution│         │Simulator│        │Simulator│
+    └─────────┘         └─────────┘        └─────────┘
+         │                   │                   │
+         └───────────────────┴───────────────────┘
+                             │
+                      ┌──────▼──────┐
+                      │   Results   │
+                      └─────────────┘
+```
+
+### Design for the Future
+
+ThermoLang is designed as a **foundational tool** for the emerging thermodynamic computing ecosystem, with first-class support for platforms like **Extropic AI** and extensibility for future hardware innovations.
+
+---
+
+## 🤝 Contributing
+
+We enthusiastically welcome contributions from the research community!
+
+### How to Contribute
+
+1. **Fork** the repository
+2. **Create** a feature branch (`git checkout -b feature/amazing-feature`)
+3. **Commit** your changes (`git commit -m 'Add amazing feature'`)
+4. **Push** to the branch (`git push origin feature/amazing-feature`)
+5. **Open** a Pull Request
+
+### Areas for Contribution
+
+- 🐛 Bug fixes and issue reports
+- 📝 Documentation improvements
+- 🎯 New optimization passes
+- 🔧 Additional backend targets
+- 📊 Benchmark problems
+- 🎓 Tutorial content
+
+See our [Contributing Guide](CONTRIBUTING.md) for detailed guidelines.
+
+---
+
+## 📖 Citation
+
+If you use ThermoLang in your research, please cite:
+
+```bibtex
+@software{thermolang2024,
+  title = {ThermoLang: A Complete Language and Compiler System for Thermodynamic Computing},
+  author = {Rateria, Dhanraj},
+  year = {2025},
+  version = {1.0},
+  url = {https://github.com/DhanrajRateria/thermolang}
+}
+```
+
+*BibTeX entry will be updated upon arXiv submission.*
+
+---
+
+## 📜 License
+
+ThermoLang is released under the [MIT License](LICENSE).
+
+---
+
+## 🙏 Acknowledgments
+
+- **Extropic AI** for the `thrml` library and ecosystem support
+- The thermodynamic computing research community
+- All contributors and early adopters
+
+---
+
+## 📬 Contact & Support
+
+- **Issues**: [GitHub Issues](https://github.com/DhanrajRateria/thermolang/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/DhanrajRateria/thermolang/discussions)
+- **Email**: [maintainer email]
+
+---
+
+<div align="center">
+  <p><strong>Built with ❤️ for the thermodynamic computing community</strong></p>
+  <p>⭐ Star us on GitHub if ThermoLang helps your research!</p>
+</div>

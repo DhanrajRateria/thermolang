@@ -75,7 +75,7 @@ namespace thermolang::optimizer
             }
         }
 
-        std::cout << "Running Ising Model Pass on '" << function_ir.name << "'" << std::endl;
+        std::cout << "Running Discrete EBM Analysis Pass on '" << function_ir.name << "'" << std::endl;
 
         ir::BasicBlock *final_block = nullptr;
         std::string final_energy_reg;
@@ -197,11 +197,11 @@ namespace thermolang::optimizer
         extract_terms(hamiltonian_add->arg1);
         extract_terms(hamiltonian_add->arg2);
 
-        std::cout << "  Detected Ising model pattern. Rewriting with optimized ISING_HAMILTONIAN instruction." << std::endl;
+        std::cout << "  Detected Discrete EBM pattern. Rewriting with optimized DISCRETE_EBM instruction." << std::endl;
 
         // --- Rewrite the IR ---
         // Create the new, single instruction representing the entire Hamiltonian.
-        auto ising_instr = std::make_unique<ir::DiscreteEBMInstr>(
+        auto ebm_instr = std::make_unique<ir::DiscreteEBMInstr>(
             final_energy_reg, // The result is stored in the same register as the original return value.
             spin_operands,
             std::move(J),
@@ -211,7 +211,7 @@ namespace thermolang::optimizer
         final_block->instructions.clear();
 
         // Add the new high-level instruction, followed by the saved return instruction.
-        final_block->instructions.push_back(std::move(ising_instr));
+        final_block->instructions.push_back(std::move(ebm_instr));
         final_block->instructions.push_back(std::move(return_instr_ptr));
 
         return true; // The IR was successfully modified.

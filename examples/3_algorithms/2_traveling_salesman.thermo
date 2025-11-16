@@ -1,0 +1,35 @@
+// The Traveling Salesman Problem (TSP) is an NP-hard problem. This example
+// shows a conceptual sketch of how it could be formulated in ThermoLang.
+// NOTE: This requires a more advanced compiler that can handle tensor-like
+// variables, which is a future goal. This example is for demonstration of intent.
+
+// Represents a 4-city tour. x_ij = 1 if we travel from city i to city j.
+energy fn tsp_4_cities(x01: float, x02: float, x03: float, 
+                      x10: float, x12: float, x13: float,
+                      x20: float, x21: float, x23: float,
+                      x30: float, x31: float, x32: float) -> float {
+
+    // Distances between cities (a simple symmetric matrix).
+    let dist01 = 1.0; let dist02 = 2.0; let dist03 = 3.0;
+    let dist12 = 1.2; let dist13 = 2.5; let dist23 = 0.8;
+
+    // Objective: Minimize total tour distance.
+    let tour_distance = x01*dist01 + x02*dist02 + x03*dist03 +
+                        x10*dist01 + x12*dist12 + x13*dist13 +
+                        x20*dist02 + x21*dist12 + x23*dist23 +
+                        x30*dist03 + x31*dist13 + x32*dist23;
+
+    // Constraints are needed to ensure a valid tour (e.g., visit each city once).
+    // In a physical system, these are often added as large penalty terms to the energy.
+    let penalty_strength = 100.0;
+    
+    // Penalty if we don't leave city 0 exactly once.
+    let leave_city0_penalty = (x01 + x02 + x03 - 1.0) * (x01 + x02 + x03 - 1.0);
+    // ... add penalties for all cities and for entering each city once.
+
+    return tour_distance + penalty_strength * leave_city0_penalty;
+}
+
+fn main() -> void {
+    let optimal_tour = thermal_anneal(tsp_4_cities, 50.0, 0.98, 10000);
+}

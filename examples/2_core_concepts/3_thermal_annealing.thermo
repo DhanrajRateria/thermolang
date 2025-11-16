@@ -1,0 +1,31 @@
+// This is your original ising_solver, reframed as a core concept example.
+// It combines an energy function with the main solver, `thermal_anneal`.
+
+// 1. Define the Energy Landscape
+// This is a simple Ising model for 4 spins in a square.
+energy fn ising_square_4spins(s1: float, s2: float, s3: float, s4: float) -> float {
+    let J = 1.0; // Coupling strength (ferromagnetic)
+    let h = 0.5; // External field strength
+
+    let coupling_energy = J*s1*s2 + J*s2*s3 + J*s3*s4 + J*s4*s1;
+    let field_energy = h*s1 + h*s2 + h*s3 + h*s4;
+
+    // The goal is to find the spin configuration {s1, s2, s3, s4}
+    // that minimizes this total energy value.
+    return -(coupling_energy + field_energy);
+}
+
+// 2. Define the Solver Process
+fn main() -> void {
+    // The `thermal_anneal` function is a built-in that instructs the backend
+    // (simulator or hardware) to find the minimum energy state of the given
+    // energy function.
+
+    // The compiler automatically optimizes the schedule parameters based on problem size.
+    let initial_temp = 10.0;
+    let cooling_rate = 0.95;
+    let steps = 5000;
+
+    // This call is the heart of the program.
+    let final_spin_config = thermal_anneal(ising_square_4spins, initial_temp, cooling_rate, steps);
+}

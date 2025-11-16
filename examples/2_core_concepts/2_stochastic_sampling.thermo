@@ -1,0 +1,21 @@
+// 'stochastic' functions are used to interact with probability distributions.
+
+// A built-in function to create a Gaussian distribution object.
+// Note: This does not draw a sample, it defines the distribution.
+stochastic fn sample_gaussian(mean: float, variance: float) -> distribution<float>;
+
+// A custom stochastic function that defines a new sampling process.
+stochastic fn biased_coin_flip(bias: float) -> bool {
+    // sample_uniform is a built-in that returns a float between 0.0 and 1.0
+    let random_val = sample_uniform(0.0, 1.0);
+    if (random_val < bias) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+fn main() -> void {
+    // Use our custom sampling function.
+    let flip_result = biased_coin_flip(0.7); // 70% chance of being true
+}

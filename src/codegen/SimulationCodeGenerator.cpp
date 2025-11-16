@@ -260,7 +260,7 @@ def simulate_annealing(energy_function, initial_state, schedule):
             ss_ << "])\n";
 
             indent();
-            // The standard Ising Hamiltonian calculation
+            // The standard Discrete EBM calculation
             ss_ << "coupling_energy = 0.5 * np.dot(s.T, np.dot(J, s))\n";
             indent();
             ss_ << "field_energy = np.dot(h.T, s)\n";

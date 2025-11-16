@@ -43,7 +43,7 @@ namespace thermolang::codegen
 
         // --- Find the key IR instructions ---
         const ir::CallInstr *anneal_call = nullptr;
-        const ir::DiscreteEBMInstr *ising_instr = nullptr;
+        const ir::DiscreteEBMInstr *ebm_instr = nullptr;
         const ir::FunctionIR *main_func = nullptr;
 
         for (const auto &func : program)
@@ -85,34 +85,34 @@ namespace thermolang::codegen
             {
                 if (func->basic_blocks.size() == 1 && func->basic_blocks[0]->instructions.size() == 2)
                 {
-                    ising_instr = dynamic_cast<ir::DiscreteEBMInstr *>(func->basic_blocks[0]->instructions[0].get());
+                    ebm_instr = dynamic_cast<ir::DiscreteEBMInstr *>(func->basic_blocks[0]->instructions[0].get());
                 }
                 break;
             }
         }
-        if (!ising_instr)
-            return "* ERROR: Could not find optimized IsingHamiltonian instruction.\n";
+        if (!ebm_instr)
+            return "* ERROR: Could not find optimized Discrete EBM instruction.\n";
 
-        generate_ising_netlist(*ising_instr, *anneal_call);
+        generate_ebm_netlist(*ebm_instr, *anneal_call);
 
         return ss_.str();
     }
 
-    void SPICECodeGenerator::generate_ising_netlist(const ir::DiscreteEBMInstr &ising_instr, const ir::CallInstr &anneal_call)
+    void SPICECodeGenerator::generate_ebm_netlist(const ir::DiscreteEBMInstr &ebm_instr, const ir::CallInstr &anneal_call)
     {
         const double R_BASE = 1e3;  // Base resistance of 1kOhm for scaling
         const double I_BASE = 1e-6; // Base current of 1uA for local field
-        int num_spins = ising_instr.spins.size();
+        int num_spins = ebm_instr.spins.size();
 
-        ss_ << "* ThermoLang Generated SPICE Netlist for Ising Model\n";
+        ss_ << "* ThermoLang Generated SPICE Netlist for Discrete EBM\n";
         ss_ << "* Problem: " << std::get<std::string>(anneal_call.args[0]) << "\n";
         ss_ << "* Spins: " << num_spins << "\n\n";
 
-        ss_ << ".title Ising Model Annealing Circuit\n\n";
+        ss_ << ".title Discrete EBM Annealing Circuit\n\n";
 
         // --- Component Definitions ---
         ss_ << "* --- Coupling Resistors (J_ij) --- \n";
-        const auto &J_matrix = ising_instr.J_matrix;
+        const auto &J_matrix = ebm_instr.J_matrix;
         for (int i = 0; i < num_spins; ++i)
         {
             for (int j = i + 1; j < num_spins; ++j)
@@ -127,7 +127,7 @@ namespace thermolang::codegen
         }
 
         ss_ << "\n* --- Local Field Current Sources (h_i) --- \n";
-        const auto &h_vector = ising_instr.h_vector;
+        const auto &h_vector = ebm_instr.h_vector;
         for (int i = 0; i < num_spins; ++i)
         {
             if (std::abs(h_vector[i]) > 1e-9)

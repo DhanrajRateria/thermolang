@@ -25,6 +25,7 @@
 #include "thermolang/codegen/SPUCodeGenerator.h"
 #include "thermolang/codegen/SPICECodeGenerator.h"
 #include "thermolang/codegen/FPGACodeGenerator.h"
+#include "thermolang/codegen/ThrmlCodeGenerator.h"
 
 // The primary compilation pipeline function.
 void run(const std::string &source, const std::string &target, bool enable_optimizations, const std::string &base_output_filename)
@@ -134,6 +135,13 @@ void run(const std::string &source, const std::string &target, bool enable_optim
         }
         return; // FPGA generator writes its own files, so we return early.
     }
+    else if (target == "thrml") // <-- ADD THIS BLOCK
+    {
+        std::cout << "\n--- Code Generation (Extropic thrml Target) ---\n";
+        thermolang::codegen::ThrmlCodeGenerator code_gen;
+        generated_code = code_gen.generate(ir_program);
+        output_filename = base_output_filename + "_thrml.py";
+    }
     else
     {
         std::cout << "\n--- IR Generation Only (No Backend Target) ---\n";
@@ -194,8 +202,8 @@ int main(int argc, char *argv[])
 {
     if (argc < 2)
     {
-        std::cerr << "ThermoLang Compiler v0.6" << std::endl;
-        std::cerr << "Usage: thermolangc <file> [--target=sim|spu|spice] [--no-opts]" << std::endl;
+        std::cerr << "ThermoLang Compiler v1.0" << std::endl;
+        std::cerr << "Usage: thermolangc <file> [--target=sim|spu|spice|fpga|thrml] [--no-opts]" << std::endl;
         return 64;
     }
 

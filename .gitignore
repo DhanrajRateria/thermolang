@@ -16,3 +16,7 @@ thermolangc
 CMakeCache.txt
 CMakeFiles/
 cmake_install.cmake
+
+# Python Environment
+thermo_env/
+rough/

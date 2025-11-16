@@ -1,6 +1,0 @@
-// Example with energy functions
-energy fn minimize_energy(x: float, y: float) -> float {
-    return x*x + y*y; // Simple quadratic energy function
-}
-
-let min_value: float = minimize_energy(2.0, 3.0);

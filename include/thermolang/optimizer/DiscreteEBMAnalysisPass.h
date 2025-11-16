@@ -1,5 +1,5 @@
-#ifndef THERMOLANG_ISING_MODEL_PASS_H
-#define THERMOLANG_ISING_MODEL_PASS_H
+#ifndef THERMOLANG_DISCRETE_EBM_ANALYSIS_PASS_H
+#define THERMOLANG_DISCRETE_EBM_ANALYSIS_PASS_H
 
 #include "thermolang/optimizer/Passes.h"
 #include <map>
@@ -20,4 +20,4 @@ namespace thermolang::optimizer
 
 } // namespace thermolang::optimizer
 
-#endif // THERMOLANG_ISING_MODEL_PASS_H
+#endif // THERMOLANG_DISCRETE_EBM_ANALYSIS_PASS_H

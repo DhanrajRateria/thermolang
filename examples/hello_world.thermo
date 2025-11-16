@@ -1,9 +1,0 @@
-// ThermoLang Example: A simple function definition
-
-// This program defines a function to compute a basic energy value.
-// It will be used to test the lexer, parser, and semantic analyzer.
-
-fn calculate_energy(x: float) -> float {
-    let base_energy = 10.5;
-    return base_energy * x * x;
-}
