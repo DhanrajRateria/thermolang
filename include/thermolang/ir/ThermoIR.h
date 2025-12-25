@@ -58,6 +58,7 @@ namespace thermolang::ir
         VARIANCE_TRACK,
         QUADRATIC_FORM,
         DISCRETE_EBM,
+        DENOISE
     };
 
     // Base class for all IR instructions.
@@ -312,10 +313,18 @@ namespace thermolang::ir
         std::vector<Operand> spins;                // Registers holding the spin variables
         std::vector<std::vector<double>> J_matrix; // Coupling matrix
         std::vector<double> h_vector;              // External field vector
+        std::vector<std::vector<int>> color_groups; // Populated by GraphColoringPass
 
+        // DiscreteEBMInstr(std::string result, std::vector<Operand> s,
+        //                       std::vector<std::vector<double>> J, std::vector<double> h)
+        //     : Instruction(OpCode::CREATE_ENERGY_FUNC), // Re-using an appropriate OpCode
+        //       result_reg(std::move(result)), spins(std::move(s)),
+        //       J_matrix(std::move(J)), h_vector(std::move(h))
+        // {
+        // }
         DiscreteEBMInstr(std::string result, std::vector<Operand> s,
                               std::vector<std::vector<double>> J, std::vector<double> h)
-            : Instruction(OpCode::CREATE_ENERGY_FUNC), // Re-using an appropriate OpCode
+            : Instruction(OpCode::DISCRETE_EBM),
               result_reg(std::move(result)), spins(std::move(s)),
               J_matrix(std::move(J)), h_vector(std::move(h))
         {
@@ -358,6 +367,21 @@ namespace thermolang::ir
         bool is_energy_function = false;
 
         std::string toString() const;
+    };
+
+    struct DenoiseInstr : Instruction 
+    {
+        std::string result_reg;
+        std::string target_energy_func; // Name of the function defining the target distribution
+        Operand initial_sigma;          // Initial noise level
+        Operand steps;                  // Number of denoising steps
+
+        DenoiseInstr(std::string result, std::string func, Operand sigma, Operand step_count)
+            : Instruction(OpCode::DENOISE), result_reg(std::move(result)),
+              target_energy_func(std::move(func)), initial_sigma(std::move(sigma)), 
+              steps(std::move(step_count)) {}
+
+        std::string toString() const override;
     };
 
 } // namespace thermolang::ir

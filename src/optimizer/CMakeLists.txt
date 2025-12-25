@@ -8,6 +8,7 @@ add_library(ThermoLangOptimizer
     DiscreteEBMAnalysisPass.cpp
     ThermalSchedulingPass.cpp
     ParallelizationPass.cpp
+    GraphColoringPass.cpp
 )
 
 # Publicly expose the include directory for this library

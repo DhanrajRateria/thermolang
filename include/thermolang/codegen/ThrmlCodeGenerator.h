@@ -14,6 +14,7 @@ namespace thermolang::codegen
     private:
         // Helper to format Python lists and matrices.
         std::string format_python_list(const std::vector<double>& vec);
+        std::string format_python_list_int(const std::vector<int>& vec);
         std::string format_python_matrix(const std::vector<std::vector<double>>& mat);
     };
 

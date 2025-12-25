@@ -75,6 +75,8 @@ namespace thermolang::ir
             return "variance_track";
         case OpCode::DISCRETE_EBM:
             return "discrete_ebm";
+        case OpCode::DENOISE:
+            return "denoise";
         default:
             return "unknown_op";
         }
@@ -151,6 +153,12 @@ namespace thermolang::ir
         return ss.str();
     }
 
+    std::string DenoiseInstr::toString() const
+    {
+        return "    " + result_reg + " = denoise target=" + target_energy_func +
+               ", sigma=" + to_string(initial_sigma) + ", steps=" + to_string(steps);
+    }
+
     std::string DiscreteEBMInstr::toString() const
     {
         std::stringstream ss;
@@ -159,7 +167,22 @@ namespace thermolang::ir
         {
             ss << to_string(spins[i]) << (i == spins.size() - 1 ? "" : ", ");
         }
-        ss << "], J=[...], h=[...]"; // Keep it concise for IR readability
+        ss << "]";
+
+        // concise matrix output
+        ss << ", J=<" << J_matrix.size() << "x" << (J_matrix.empty() ? 0 : J_matrix[0].size()) << ">";
+        ss << ", h=<size " << h_vector.size() << ">";
+
+        // Display optimization status
+        if (!color_groups.empty())
+        {
+            ss << ", colored_blocks=" << color_groups.size();
+        }
+        else
+        {
+            ss << ", uncolored";
+        }
+
         return ss.str();
     }
 

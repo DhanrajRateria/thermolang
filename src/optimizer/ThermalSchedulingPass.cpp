@@ -77,13 +77,32 @@ namespace thermolang::optimizer
                             {
                                 if (load->result_reg == temp_reg)
                                 {
-                                    load->value = new_initial_temp;
-                                    modified = true;
+                                    bool needs_update = true;
+                                    // Check if value is already close enough
+                                    if (std::holds_alternative<double>(load->value))
+                                    {
+                                        if (std::abs(std::get<double>(load->value) - new_initial_temp) < 1e-6)
+                                            needs_update = false;
+                                    }
+                                    if (needs_update)
+                                    {
+                                        load->value = new_initial_temp;
+                                        modified = true;
+                                    }
                                 }
                                 if (load->result_reg == steps_reg)
                                 {
-                                    load->value = new_steps;
-                                    modified = true;
+                                    bool needs_update = true;
+                                    if (std::holds_alternative<int64_t>(load->value))
+                                    {
+                                        if (std::get<int64_t>(load->value) == new_steps)
+                                            needs_update = false;
+                                    }
+                                    if (needs_update)
+                                    {
+                                        load->value = new_steps;
+                                        modified = true;
+                                    }
                                 }
                             }
                         }

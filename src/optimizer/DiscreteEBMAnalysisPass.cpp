@@ -24,11 +24,11 @@ namespace thermolang::optimizer
                     if (load_op->result_reg == reg)
                         return instr.get();
                 }
-                else if (auto *call_op = dynamic_cast<ir::CallInstr *>(instr.get()))
-                {
-                    if (call_op->result_reg.has_value() && *call_op->result_reg == reg)
-                        return instr.get();
-                }
+                // else if (auto *call_op = dynamic_cast<ir::CallInstr *>(instr.get()))
+                // {
+                //     if (call_op->result_reg.has_value() && *call_op->result_reg == reg)
+                //         return instr.get();
+                // }
             }
         }
         return nullptr;
@@ -58,12 +58,13 @@ namespace thermolang::optimizer
 
     bool DiscreteEBMAnalysisPass::run(ir::FunctionIR &function_ir)
     {
+        bool is_inverted = false;
         if (!function_ir.is_energy_function)
         {
             return false;
         }
 
-        // Idempotency Check: Skip if the function has already been optimized by this pass.
+        // Idempotency Check
         for (const auto &block : function_ir.basic_blocks)
         {
             for (const auto &instr : block->instructions)
@@ -115,21 +116,35 @@ namespace thermolang::optimizer
         // --- Pattern Matching Logic ---
         // Trace back from the return value to find the Hamiltonian structure.
         auto *negation = dynamic_cast<ir::BinaryOpInstr *>(find_defining_instr(function_ir, final_energy_reg));
-        if (!negation || negation->opcode != ir::OpCode::MUL || !get_const_value(function_ir, negation->arg2).has_value() || get_const_value(function_ir, negation->arg2) != -1.0)
+        std::string sum_reg;
+
+        if (negation && negation->opcode == ir::OpCode::MUL)
         {
-            final_block->instructions.push_back(std::move(return_instr_ptr)); // Restore IR and exit
-            return false;
+            auto val1 = get_const_value(function_ir, negation->arg1);
+            auto val2 = get_const_value(function_ir, negation->arg2);
+
+            // Check commutativity: -1 * sum OR sum * -1
+            if (val1.has_value() && std::abs(*val1 + 1.0) < 1e-9 && std::holds_alternative<std::string>(negation->arg2))
+            {
+                sum_reg = std::get<std::string>(negation->arg2);
+            }
+            else if (val2.has_value() && std::abs(*val2 + 1.0) < 1e-9 && std::holds_alternative<std::string>(negation->arg1))
+            {
+                sum_reg = std::get<std::string>(negation->arg1);
+            }
         }
 
-        std::string sum_reg = std::get<std::string>(negation->arg1);
-        auto *hamiltonian_add = dynamic_cast<ir::BinaryOpInstr *>(find_defining_instr(function_ir, sum_reg));
-        if (!hamiltonian_add || hamiltonian_add->opcode != ir::OpCode::ADD)
+        if (sum_reg.empty())
         {
-            final_block->instructions.push_back(std::move(return_instr_ptr)); // Restore IR and exit
-            return false;
+            sum_reg = final_energy_reg;
+            is_inverted = false;
+        }
+        else
+        {
+            is_inverted = true;
         }
 
-        // --- Parameter Extraction ---
+        // 3. Map Parameters
         std::map<std::string, int> spin_to_index;
         std::vector<ir::Operand> spin_operands;
         for (const auto &param_reg : function_ir.parameters)
@@ -141,68 +156,94 @@ namespace thermolang::optimizer
         std::vector<std::vector<double>> J(n_spins, std::vector<double>(n_spins, 0.0));
         std::vector<double> h(n_spins, 0.0);
 
-        // Recursive lambda to traverse the Add tree and extract terms.
-        std::function<void(const ir::Operand &)> extract_terms =
-            [&](const ir::Operand &op)
+        // 4. Recursive Term Extraction
+        std::function<void(const ir::Operand &, double)> extract_terms_weighted;
+
+        extract_terms_weighted = [&](const ir::Operand &op, double multiplier)
         {
             if (!std::holds_alternative<std::string>(op))
                 return;
-            auto *term_def = find_defining_instr(function_ir, std::get<std::string>(op));
+            std::string reg = std::get<std::string>(op);
 
-            if (auto *add = dynamic_cast<ir::BinaryOpInstr *>(term_def))
+            // Base Case 1: The variable itself (Linear term h_i)
+            if (spin_to_index.count(reg))
+            {
+                h[spin_to_index[reg]] += 1.0 * multiplier;
+                return;
+            }
+
+            auto *def = find_defining_instr(function_ir, reg);
+            if (!def)
+                return;
+
+            // Recursive Step: Distribute multiplier over Addition
+            if (auto *add = dynamic_cast<ir::BinaryOpInstr *>(def))
             {
                 if (add->opcode == ir::OpCode::ADD)
                 {
-                    extract_terms(add->arg1);
-                    extract_terms(add->arg2);
+                    extract_terms_weighted(add->arg1, multiplier);
+                    extract_terms_weighted(add->arg2, multiplier);
                     return;
                 }
             }
 
-            auto *mul = dynamic_cast<ir::BinaryOpInstr *>(term_def);
-            if (!mul || mul->opcode != ir::OpCode::MUL)
-                return;
+            // Analysis Step: Handle Multiplication
+            if (auto *mul = dynamic_cast<ir::BinaryOpInstr *>(def))
+            {
+                if (mul->opcode == ir::OpCode::MUL)
+                {
+                    auto c1 = get_const_value(function_ir, mul->arg1);
+                    auto c2 = get_const_value(function_ir, mul->arg2);
 
-            // Case 1: Field Term (h_i * s_i)
-            if (auto h_val = get_const_value(function_ir, mul->arg1))
-            {
-                if (auto s_i_op = std::get_if<std::string>(&mul->arg2))
-                {
-                    if (spin_to_index.count(*s_i_op))
-                        h[spin_to_index[*s_i_op]] += *h_val;
-                }
-            }
-            // Case 2: Coupling Term ( (J_ij * s_i) * s_j )
-            else if (auto *inner_mul = dynamic_cast<ir::BinaryOpInstr *>(find_defining_instr(function_ir, std::get<std::string>(mul->arg1))))
-            {
-                if (auto j_val = get_const_value(function_ir, inner_mul->arg1))
-                {
-                    if (auto s_i_op = std::get_if<std::string>(&inner_mul->arg2))
+                    std::string r1 = std::holds_alternative<std::string>(mul->arg1) ? std::get<std::string>(mul->arg1) : "";
+                    std::string r2 = std::holds_alternative<std::string>(mul->arg2) ? std::get<std::string>(mul->arg2) : "";
+
+                    // Case A: Constant * Expression (Recurse down)
+                    if (c1.has_value() && !r2.empty())
                     {
-                        if (auto s_j_op = std::get_if<std::string>(&mul->arg2))
-                        {
-                            if (spin_to_index.count(*s_i_op) && spin_to_index.count(*s_j_op))
-                            {
-                                int idx_i = spin_to_index[*s_i_op];
-                                int idx_j = spin_to_index[*s_j_op];
-                                J[idx_i][idx_j] += *j_val;
-                                J[idx_j][idx_i] += *j_val; // Ensure symmetry
-                            }
-                        }
+                        extract_terms_weighted(mul->arg2, multiplier * (*c1));
+                        return;
+                    }
+                    if (c2.has_value() && !r1.empty())
+                    {
+                        extract_terms_weighted(mul->arg1, multiplier * (*c2));
+                        return;
+                    }
+
+                    // Case B: Spin * Spin (Quadratic Coupling J_ij)
+                    if (!r1.empty() && !r2.empty() && spin_to_index.count(r1) && spin_to_index.count(r2))
+                    {
+                        int i = spin_to_index[r1];
+                        int j = spin_to_index[r2];
+                        // Add contribution to J matrix (symmetric)
+                        J[i][j] += 1.0 * multiplier;
+                        J[j][i] += 1.0 * multiplier;
+                        return;
                     }
                 }
             }
         };
 
-        extract_terms(hamiltonian_add->arg1);
-        extract_terms(hamiltonian_add->arg2);
+        // Start traversal
+        extract_terms_weighted(ir::Operand{sum_reg}, 1.0);
 
-        std::cout << "  Detected Discrete EBM pattern. Rewriting with optimized DISCRETE_EBM instruction." << std::endl;
+        std::cout << "  Detected Discrete EBM pattern. J Matrix size: " << n_spins << "x" << n_spins << std::endl;
 
-        // --- Rewrite the IR ---
-        // Create the new, single instruction representing the entire Hamiltonian.
+        // 5. Polarity Correction
+        // If E_user = sum (s * s), we need Hardware H = - sum (-1 * s * s)
+        if (!is_inverted)
+        {
+            std::cout << "  (Implicit positive energy detected. Inverting weights for hardware Hamiltonian.)" << std::endl;
+            for (auto &row : J)
+                for (double &val : row)
+                    val = -val;
+            for (double &val : h)
+                val = -val;
+        }
+
+        // 6. Rewrite IR
         auto ebm_instr = std::make_unique<ir::DiscreteEBMInstr>(
-            final_energy_reg, // The result is stored in the same register as the original return value.
+            final_energy_reg,
             spin_operands,
             std::move(J),
             std::move(h));

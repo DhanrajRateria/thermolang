@@ -1,0 +1,29 @@
+// Antiferromagnetic Energy: E = +1.0 * sum(s_i * s_j)
+// This means Energy is HIGH when neighbors are EQUAL.
+// Nature wants Energy to be LOW, so neighbors will try to be DIFFERENT.
+
+energy fn antiferro_model(
+    s0: float, s1: float, s2: float, s3: float,
+    s4: float, s5: float, s6: float, s7: float,
+    s8: float, s9: float, s10: float, s11: float,
+    s12: float, s13: float, s14: float, s15: float
+) -> float {
+   // A simple 4x4 grid with J = +1.0 (Antiferromagnetic)
+   // We define just a few connections to test the compiler's mapping
+   let J = 1.0;
+   
+   // Row 0
+   let r0 = J * (s0*s1 + s1*s2 + s2*s3 + s3*s0); 
+   // Row 1
+   let r1 = J * (s4*s5 + s5*s6 + s6*s7 + s7*s4);
+   
+   // Vertical connections (Columns)
+   let c0 = J * (s0*s4 + s1*s5 + s2*s6 + s3*s7);
+   
+   return r0 + r1 + c0;
+}
+
+fn main() -> void {
+    // Run the annealing process
+    let result = thermal_anneal(antiferro_model, 50.0, 0.99, 2000);
+}

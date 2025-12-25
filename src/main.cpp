@@ -19,6 +19,7 @@
 #include "thermolang/optimizer/CircuitTopologyOptimizer.h"
 #include "thermolang/optimizer/VarianceTrackingPass.h"
 #include "thermolang/optimizer/ThermalSchedulingPass.h"
+#include "thermolang/optimizer/GraphColoringPass.h"
 
 // --- Code Generator Headers ---
 #include "thermolang/codegen/CodeGenerator.h"
@@ -71,6 +72,7 @@ void run(const std::string &source, const std::string &target, bool enable_optim
         // Register all optimizer passes.
         opt_manager.add_pass(std::make_unique<thermolang::optimizer::ConstantFoldingPass>());
         opt_manager.add_pass(std::make_unique<thermolang::optimizer::DiscreteEBMAnalysisPass>());
+        opt_manager.add_pass(std::make_unique<thermolang::optimizer::GraphColoringPass>());
         opt_manager.add_pass(std::make_unique<thermolang::optimizer::EnergyFunctionPass>());
         opt_manager.add_pass(std::make_unique<thermolang::optimizer::CircuitTopologyPass>());
         opt_manager.add_pass(std::make_unique<thermolang::optimizer::VarianceTrackingPass>());
@@ -135,7 +137,7 @@ void run(const std::string &source, const std::string &target, bool enable_optim
         }
         return; // FPGA generator writes its own files, so we return early.
     }
-    else if (target == "thrml") // <-- ADD THIS BLOCK
+    else if (target == "thrml")
     {
         std::cout << "\n--- Code Generation (Extropic thrml Target) ---\n";
         thermolang::codegen::ThrmlCodeGenerator code_gen;

@@ -9,7 +9,7 @@ module spu_core #(
     input wire                      rst_n,
     input wire signed [DATA_WIDTH-1:0]  h_local_field,
     
-    // FIX: Flattened array ports for Verilog-2001 compatibility
+    // Flattened array ports
     input wire signed [DATA_WIDTH-1:0]  j_coupling_0,
     input wire signed [DATA_WIDTH-1:0]  j_coupling_1,
     input wire signed [DATA_WIDTH-1:0]  j_coupling_2,
@@ -21,11 +21,26 @@ module spu_core #(
     input wire signed [1:0]             neighbor_spin_3,
 
     input wire        [DATA_WIDTH-1:0]  temperature,
-    input wire        [DATA_WIDTH-1:0]  rand_num,
+    // REMOVED: input wire [DATA_WIDTH-1:0] rand_num, 
+    // We now generate this internally!
+    
     output reg signed [1:0]             current_spin_state
 );
 
     localparam FULL_WIDTH = DATA_WIDTH + $clog2(NEIGHBOR_COUNT);
+
+    // --- INTERNAL TRNG INSTANTIATION ---
+    wire [15:0] internal_rand_num;
+    
+    // We instantiate the TRNG we just built.
+    // !rst_n because our system uses active-low reset (rst_n), 
+    // but our TRNG used active-high (rst).
+    trng entropy_source (
+        .clk(clk),
+        .rst(!rst_n), 
+        .rand_out(internal_rand_num)
+    );
+    // -----------------------------------
 
     integer i;
 
@@ -62,7 +77,11 @@ module spu_core #(
 
     assign delta_energy = (total_local_energy <<< 1) * current_spin_state;
     assign scaled_temperature = temperature <<< $clog2(NEIGHBOR_COUNT);
-    assign accept_flip = (delta_energy < 0) || (rand_num < (1'b1 << FRAC_BITS) - (delta_energy / (scaled_temperature + 1)));
+    
+    // Logic: If Delta E < 0, always flip.
+    // If Delta E > 0, flip with probability exp(-Delta E / T).
+    // We compare internal_rand_num against the threshold.
+    assign accept_flip = (delta_energy < 0) || (internal_rand_num < (1'b1 << FRAC_BITS) - (delta_energy / (scaled_temperature + 1)));
 
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin

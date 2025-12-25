@@ -478,6 +478,30 @@ namespace thermolang::compiler
                 last_expr_result_reg_ = result_reg;
                 return;
             }
+
+            else if (callee_name == "thermal_denoise" && expr.arguments.size() == 3)
+            {
+                analyze(*expr.arguments[0]); 
+                std::string target_func_reg = last_expr_result_reg_;
+
+                analyze(*expr.arguments[1]); 
+                std::string sigma_reg = last_expr_result_reg_;
+
+                analyze(*expr.arguments[2]); 
+                std::string steps_reg = last_expr_result_reg_;
+
+                std::string result_reg = new_register();
+                
+                add_instruction(std::make_unique<ir::DenoiseInstr>(
+                    result_reg, 
+                    target_func_reg, 
+                    ir::Operand{sigma_reg}, 
+                    ir::Operand{steps_reg}
+                ));
+
+                last_expr_result_reg_ = result_reg;
+                return;
+            }
         }
 
         // Standard function call processing

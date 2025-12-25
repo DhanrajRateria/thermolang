@@ -102,8 +102,8 @@ namespace thermolang::codegen
         int num_spins = ebm_instr->spins.size();
         int grid_size = static_cast<int>(sqrt(num_spins));
 
-        mem_file << "// ThermoLang Generated Problem Configuration for a " << grid_size << "x" << grid_size << " grid\n";
-        mem_file << "// Format: For each spin (row-major): h, J_north, J_south, J_east, J_west\n";
+        // mem_file << "// ThermoLang Generated Problem Configuration for a " << grid_size << "x" << grid_size << " grid\n";
+        // mem_file << "// Format: For each spin (row-major): h, J_north, J_south, J_east, J_west\n";
 
         for (int r = 0; r < grid_size; ++r)
         {
@@ -136,7 +136,7 @@ namespace thermolang::codegen
         double cooling_rate = get_const_val<double>(anneal_call->args[2], program);
         int64_t steps = get_const_val<int64_t>(anneal_call->args[3], program);
 
-        schedule_file << "// ThermoLang Generated Annealing Schedule\n";
+        // schedule_file << "// ThermoLang Generated Annealing Schedule\n";
         schedule_file << "initial_temp " << std::fixed << std::setprecision(6) << initial_temp << "\n";
         schedule_file << "cooling_rate " << std::fixed << std::setprecision(6) << cooling_rate << "\n";
         schedule_file << "steps " << steps << "\n";

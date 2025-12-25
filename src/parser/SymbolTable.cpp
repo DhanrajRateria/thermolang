@@ -66,6 +66,16 @@ namespace thermolang
                 Type::int_type()},
             Type::float_type()); // Returns a float for now
         define("thermal_anneal", thermal_anneal_type, false, true);
+
+        // thermal fn thermal_denoise(target: energy<float>, initial_sigma: float, steps: int) -> Configuration
+        auto denoise_type = std::make_shared<FunctionType>(
+            std::vector<std::shared_ptr<Type>>{
+                single_var_energy_type,
+                Type::float_type(), // sigma
+                Type::int_type()    // steps
+            },
+            Type::float_type());
+        define("thermal_denoise", denoise_type, false, true);
     }
 
     void SymbolTable::enter_scope()

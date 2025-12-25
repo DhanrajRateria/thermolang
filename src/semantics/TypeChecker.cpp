@@ -875,6 +875,40 @@ namespace thermolang
                 expr.type = Type::float_type();
                 return; // Exit, as we have handled this special call.
             }
+
+            else if (var_expr->name.get_lexeme() == "thermal_denoise")
+            {
+
+                if (expr.arguments.size() != 3)
+                {
+                    report_error("'thermal_denoise' expects 3 arguments (target, sigma, steps).");
+                    return;
+                }
+
+                // Check 1: Target Energy Function (Polymorphic check)
+                check(*expr.arguments[0]);
+                if (!dynamic_cast<const EnergyType *>(expr.arguments[0]->type.get()))
+                {
+                    report_error("Arg 1 of 'thermal_denoise' must be an energy function.");
+                }
+
+                // Check 2: Initial Sigma (Float)
+                check(*expr.arguments[1]);
+                if (!Type::float_type()->is_compatible_with(*expr.arguments[1]->type))
+                {
+                    report_error("Arg 2 (sigma) must be float.");
+                }
+
+                // Check 3: Steps (Int)
+                check(*expr.arguments[2]);
+                if (!Type::int_type()->is_compatible_with(*expr.arguments[2]->type))
+                {
+                    report_error("Arg 3 (steps) must be int.");
+                }
+
+                expr.type = Type::float_type(); // Returns configuration
+                return;
+            }
         }
 
         // Check arguments
