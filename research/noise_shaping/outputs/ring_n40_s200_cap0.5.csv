@@ -1,0 +1,5 @@
+mode,beta_min,beta_max,wall_clock_sec,final_energy
+off,1.0000,1.0000,0.041172,-21.988845
+degree,2.0000,2.0000,0.040865,-33.864742
+variance,0.5000,0.9674,0.040981,-25.024863
+degree+variance,1.0000,1.9349,0.041398,-34.436730

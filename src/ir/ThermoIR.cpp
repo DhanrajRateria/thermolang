@@ -173,6 +173,11 @@ namespace thermolang::ir
         ss << ", J=<" << J_matrix.size() << "x" << (J_matrix.empty() ? 0 : J_matrix[0].size()) << ">";
         ss << ", h=<size " << h_vector.size() << ">";
 
+        if (!local_temperatures.empty())
+        {
+            ss << ", local_T=<size " << local_temperatures.size() << ">";
+        }
+
         // Display optimization status
         if (!color_groups.empty())
         {

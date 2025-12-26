@@ -4,6 +4,7 @@
 #include <memory>
 #include <cmath>
 #include <variant>
+#include <cstdlib>
 
 #include "thermolang/compiler/IrGenerator.h"
 #include "thermolang/optimizer/OptimizationManager.h"
@@ -18,6 +19,7 @@
 #include "thermolang/parser/Parser.h"
 #include "thermolang/semantics/SemanticAnalyzer.h"
 #include "thermolang/optimizer/ThermalSchedulingPass.h"
+#include "thermolang/optimizer/NoiseShapingPass.h"
 
 // Test fixture for Optimizer Passes
 class OptimizerTest : public ::testing::Test
@@ -266,4 +268,47 @@ TEST_F(OptimizerTest, ThermalSchedulingPass)
 
     EXPECT_NEAR(found_temp, expected_temp, 0.001);
     EXPECT_EQ(found_steps, expected_steps);
+}
+
+TEST_F(OptimizerTest, NoiseShapingScalesAndEmitsLocalTemperatures)
+{
+    // Ensure variance shaping is enabled for this test regardless of external env
+    setenv("NOISE_SHAPING_MODE", "degree+variance", 1);
+    setenv("NOISE_SHAPING_VARIANCE_SHRINK", "0.5", 1);
+
+    using namespace thermolang;
+    using namespace thermolang::ir;
+
+    auto func = std::make_unique<FunctionIR>();
+    func->name = "energy";
+    func->is_energy_function = true;
+    func->basic_blocks.emplace_back(std::make_unique<BasicBlock>("entry"));
+    auto &instrs = func->basic_blocks[0]->instructions;
+
+    instrs.push_back(std::make_unique<VarianceTrackInstr>("s0", std::string("s0"), 1.0));
+    instrs.push_back(std::make_unique<VarianceTrackInstr>("s1", std::string("s1"), 0.0));
+
+    std::vector<Operand> spins = {std::string("s0"), std::string("s1")};
+    std::vector<std::vector<double>> J = {{0.0, 1.0}, {1.0, 0.0}};
+    std::vector<double> h = {1.0, 1.0};
+
+    instrs.push_back(std::make_unique<DiscreteEBMInstr>("res", spins, J, h));
+
+    optimizer::NoiseShapingPass pass;
+    bool modified = pass.run(*func);
+    EXPECT_TRUE(modified);
+
+    auto *ebm = dynamic_cast<DiscreteEBMInstr *>(instrs.back().get());
+    ASSERT_NE(ebm, nullptr);
+
+    ASSERT_EQ(ebm->local_temperatures.size(), spins.size());
+    EXPECT_NEAR(ebm->h_vector[0], 1.0, 1e-9); // variance shrinks beta back to 1.0
+    EXPECT_NEAR(ebm->h_vector[1], 2.0, 1e-9);
+
+    double expected_coupling = std::sqrt(1.0 * 2.0);
+    EXPECT_NEAR(ebm->J_matrix[0][1], expected_coupling, 1e-9);
+    EXPECT_NEAR(ebm->J_matrix[1][0], expected_coupling, 1e-9);
+
+    EXPECT_NEAR(ebm->local_temperatures[0], 1.0, 1e-9);
+    EXPECT_NEAR(ebm->local_temperatures[1], 0.5, 1e-9);
 }

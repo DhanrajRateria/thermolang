@@ -310,9 +310,10 @@ namespace thermolang::ir
     struct DiscreteEBMInstr : Instruction
     {
         std::string result_reg;
-        std::vector<Operand> spins;                // Registers holding the spin variables
-        std::vector<std::vector<double>> J_matrix; // Coupling matrix
-        std::vector<double> h_vector;              // External field vector
+        std::vector<Operand> spins;                 // Registers holding the spin variables
+        std::vector<std::vector<double>> J_matrix;  // Coupling matrix
+        std::vector<double> h_vector;               // External field vector
+        std::vector<double> local_temperatures;     // Optional per-spin temperatures (T_i). Empty if global.
         std::vector<std::vector<int>> color_groups; // Populated by GraphColoringPass
 
         // DiscreteEBMInstr(std::string result, std::vector<Operand> s,
@@ -323,10 +324,10 @@ namespace thermolang::ir
         // {
         // }
         DiscreteEBMInstr(std::string result, std::vector<Operand> s,
-                              std::vector<std::vector<double>> J, std::vector<double> h)
+                         std::vector<std::vector<double>> J, std::vector<double> h)
             : Instruction(OpCode::DISCRETE_EBM),
               result_reg(std::move(result)), spins(std::move(s)),
-              J_matrix(std::move(J)), h_vector(std::move(h))
+              J_matrix(std::move(J)), h_vector(std::move(h)), local_temperatures()
         {
         }
 
@@ -369,7 +370,7 @@ namespace thermolang::ir
         std::string toString() const;
     };
 
-    struct DenoiseInstr : Instruction 
+    struct DenoiseInstr : Instruction
     {
         std::string result_reg;
         std::string target_energy_func; // Name of the function defining the target distribution
@@ -378,7 +379,7 @@ namespace thermolang::ir
 
         DenoiseInstr(std::string result, std::string func, Operand sigma, Operand step_count)
             : Instruction(OpCode::DENOISE), result_reg(std::move(result)),
-              target_energy_func(std::move(func)), initial_sigma(std::move(sigma)), 
+              target_energy_func(std::move(func)), initial_sigma(std::move(sigma)),
               steps(std::move(step_count)) {}
 
         std::string toString() const override;

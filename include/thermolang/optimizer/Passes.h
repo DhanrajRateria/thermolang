@@ -22,6 +22,7 @@ namespace thermolang::optimizer
     class CircuitTopologyPass;
     class ThermalSchedulingPass;
     class VarianceTrackingPass;
+    class NoiseShapingPass;
 
 } // namespace thermolang::optimizer
 

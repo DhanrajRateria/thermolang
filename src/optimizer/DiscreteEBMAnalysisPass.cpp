@@ -37,20 +37,44 @@ namespace thermolang::optimizer
     // Helper to extract a constant value from an operand, resolving registers.
     std::optional<double> get_const_value(ir::FunctionIR &ir, const ir::Operand &op)
     {
+        // 1. Direct literals
         if (std::holds_alternative<double>(op))
             return std::get<double>(op);
         if (std::holds_alternative<int64_t>(op))
             return static_cast<double>(std::get<int64_t>(op));
 
+        // 2. Register lookup
         if (std::holds_alternative<std::string>(op))
         {
             auto *def_instr = find_defining_instr(ir, std::get<std::string>(op));
+            if (!def_instr)
+                return std::nullopt;
+
+            // Handle LoadConst
             if (auto *load_instr = dynamic_cast<ir::LoadConstInstr *>(def_instr))
             {
                 if (std::holds_alternative<double>(load_instr->value))
                     return std::get<double>(load_instr->value);
                 if (std::holds_alternative<int64_t>(load_instr->value))
                     return static_cast<double>(std::get<int64_t>(load_instr->value));
+            }
+
+            // Handle Simple Binary Ops (specifically Negation via MUL -1)
+            if (auto *bin_op = dynamic_cast<ir::BinaryOpInstr *>(def_instr))
+            {
+                auto val1 = get_const_value(ir, bin_op->arg1);
+                auto val2 = get_const_value(ir, bin_op->arg2);
+
+                if (val1 && val2)
+                {
+                    if (bin_op->opcode == ir::OpCode::MUL)
+                        return *val1 * *val2;
+                    if (bin_op->opcode == ir::OpCode::ADD)
+                        return *val1 + *val2;
+                    if (bin_op->opcode == ir::OpCode::SUB)
+                        return *val1 - *val2;
+                    // Add others if needed
+                }
             }
         }
         return std::nullopt;
@@ -156,76 +180,112 @@ namespace thermolang::optimizer
         std::vector<std::vector<double>> J(n_spins, std::vector<double>(n_spins, 0.0));
         std::vector<double> h(n_spins, 0.0);
 
-        // 4. Recursive Term Extraction
-        std::function<void(const ir::Operand &, double)> extract_terms_weighted;
-
-        extract_terms_weighted = [&](const ir::Operand &op, double multiplier)
+        // 4. Term Extraction via flattening MUL trees
+        std::function<void(const ir::Operand &, double &, std::vector<int> &)> flatten_mul;
+        flatten_mul = [&](const ir::Operand &op, double &coeff, std::vector<int> &spins)
         {
-            if (!std::holds_alternative<std::string>(op))
-                return;
-            std::string reg = std::get<std::string>(op);
-
-            // Base Case 1: The variable itself (Linear term h_i)
-            if (spin_to_index.count(reg))
+            // 1) Literal constant
+            if (auto val = get_const_value(function_ir, op))
             {
-                h[spin_to_index[reg]] += 1.0 * multiplier;
+                coeff *= *val;
                 return;
             }
 
+            if (!std::holds_alternative<std::string>(op))
+                return;
+
+            const std::string reg = std::get<std::string>(op);
+
+            // 2) Spin parameter (base case)
+            auto spin_it = spin_to_index.find(reg);
+            if (spin_it != spin_to_index.end())
+            {
+                spins.push_back(spin_it->second);
+                return;
+            }
+
+            // 3) Instruction lookup
             auto *def = find_defining_instr(function_ir, reg);
             if (!def)
                 return;
 
-            // Recursive Step: Distribute multiplier over Addition
-            if (auto *add = dynamic_cast<ir::BinaryOpInstr *>(def))
+            if (auto *load = dynamic_cast<ir::LoadConstInstr *>(def))
             {
-                if (add->opcode == ir::OpCode::ADD)
+                if (auto v = get_const_value(function_ir, ir::Operand(reg)))
                 {
-                    extract_terms_weighted(add->arg1, multiplier);
-                    extract_terms_weighted(add->arg2, multiplier);
-                    return;
+                    coeff *= *v;
                 }
+                return;
             }
 
-            // Analysis Step: Handle Multiplication
             if (auto *mul = dynamic_cast<ir::BinaryOpInstr *>(def))
             {
                 if (mul->opcode == ir::OpCode::MUL)
                 {
-                    auto c1 = get_const_value(function_ir, mul->arg1);
-                    auto c2 = get_const_value(function_ir, mul->arg2);
-
-                    std::string r1 = std::holds_alternative<std::string>(mul->arg1) ? std::get<std::string>(mul->arg1) : "";
-                    std::string r2 = std::holds_alternative<std::string>(mul->arg2) ? std::get<std::string>(mul->arg2) : "";
-
-                    // Case A: Constant * Expression (Recurse down)
-                    if (c1.has_value() && !r2.empty())
+                    flatten_mul(mul->arg1, coeff, spins);
+                    flatten_mul(mul->arg2, coeff, spins);
+                    return;
+                }
+                // Handle negation via SUB: reg = 0 - x
+                if (mul->opcode == ir::OpCode::SUB)
+                {
+                    auto v1 = get_const_value(function_ir, mul->arg1);
+                    if (v1 && *v1 == 0.0)
                     {
-                        extract_terms_weighted(mul->arg2, multiplier * (*c1));
-                        return;
-                    }
-                    if (c2.has_value() && !r1.empty())
-                    {
-                        extract_terms_weighted(mul->arg1, multiplier * (*c2));
-                        return;
-                    }
-
-                    // Case B: Spin * Spin (Quadratic Coupling J_ij)
-                    if (!r1.empty() && !r2.empty() && spin_to_index.count(r1) && spin_to_index.count(r2))
-                    {
-                        int i = spin_to_index[r1];
-                        int j = spin_to_index[r2];
-                        // Add contribution to J matrix (symmetric)
-                        J[i][j] += 1.0 * multiplier;
-                        J[j][i] += 1.0 * multiplier;
+                        coeff *= -1.0;
+                        flatten_mul(mul->arg2, coeff, spins);
                         return;
                     }
                 }
             }
         };
 
+        std::function<void(const ir::Operand &)> extract_terms_flat;
+        extract_terms_flat = [&](const ir::Operand &op)
+        {
+            std::string reg;
+            if (std::holds_alternative<std::string>(op))
+            {
+                reg = std::get<std::string>(op);
+            }
+
+            ir::Instruction *def = reg.empty() ? nullptr : find_defining_instr(function_ir, reg);
+
+            if (def)
+            {
+                if (auto *add = dynamic_cast<ir::BinaryOpInstr *>(def))
+                {
+                    if (add->opcode == ir::OpCode::ADD)
+                    {
+                        extract_terms_flat(add->arg1);
+                        extract_terms_flat(add->arg2);
+                        return;
+                    }
+                }
+            }
+
+            double coeff = 1.0;
+            std::vector<int> spins;
+            flatten_mul(op, coeff, spins);
+
+            if (spins.size() == 1)
+            {
+                h[spins[0]] += coeff;
+            }
+            else if (spins.size() == 2)
+            {
+                int i = spins[0];
+                int j = spins[1];
+                if (i != j)
+                {
+                    J[i][j] += coeff;
+                    J[j][i] += coeff;
+                }
+            }
+        };
+
         // Start traversal
-        extract_terms_weighted(ir::Operand{sum_reg}, 1.0);
+        extract_terms_flat(ir::Operand{sum_reg});
 
         std::cout << "  Detected Discrete EBM pattern. J Matrix size: " << n_spins << "x" << n_spins << std::endl;
 

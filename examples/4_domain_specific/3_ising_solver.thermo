@@ -1,0 +1,28 @@
+// Domain-specific example: Ising solver for a 4-spin square.
+// Matches test expectations for EndToEndTest.CompilesAndRunsIsingSolver.
+
+// Energy function for a 4-spin square Ising model.
+// Coupling J=1.0 (ferromagnetic), external field h=0.5 on each spin.
+energy fn ising_square(r0: float, r1: float, r2: float, r3: float) -> float {
+    let J = 1.0;
+    let h = 0.5;
+
+    // Coupling energy on square edges: (0-1,1-2,2-3,3-0)
+    let coupling_energy = J*r0*r1 + J*r1*r2 + J*r2*r3 + J*r3*r0;
+    let field_energy = h*r0 + h*r1 + h*r2 + h*r3;
+
+    // Minimize negative of total to favor aligned spins with field.
+    return -(coupling_energy + field_energy);
+}
+
+fn main() -> void {
+    // Annealing schedule (mirrors values used in generated sim reference).
+    let initial_temp = 3.465736;
+    let cooling_rate = 0.95;
+    let steps = 4000;
+
+    // Start from all spins +1 (encoded as floats for compatibility).
+    let final_state = thermal_anneal(ising_square, initial_temp, cooling_rate, steps);
+
+    // The runtime backend (sim or hardware) produces results; nothing to print here.
+}

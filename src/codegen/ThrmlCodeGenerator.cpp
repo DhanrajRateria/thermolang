@@ -179,6 +179,10 @@ namespace thermolang::codegen
         ss << "    # 1. Define Topology (" << num_spins << " spins)\n";
         ss << "    nodes = [SpinNode() for _ in range(" << num_spins << ")]\n";
 
+        const bool has_local_temperatures =
+            ebm_instr->local_temperatures.size() == static_cast<size_t>(num_spins) &&
+            !ebm_instr->local_temperatures.empty();
+
         // 6. Generate Biases (JAX Array)
         ss << "    biases = jnp.array(" << format_python_list(ebm_instr->h_vector) << ", dtype=jnp.float32)\n";
 
@@ -186,7 +190,9 @@ namespace thermolang::codegen
         ss << "    # Reconstructing graph from J matrix\n";
         ss << "    edges = []\n";
         ss << "    weights_list = []\n";
+        ss << "    edge_indices_list = []\n";
         const auto &J = ebm_instr->J_matrix;
+        bool has_edges = false;
         for (size_t i = 0; i < J.size(); ++i)
         {
             for (size_t j = i + 1; j < J[i].size(); ++j)
@@ -195,9 +201,20 @@ namespace thermolang::codegen
                 { // Only add non-zero couplings
                     ss << "    edges.append((nodes[" << i << "], nodes[" << j << "]))\n";
                     ss << "    weights_list.append(" << J[i][j] << ")\n";
+                    ss << "    edge_indices_list.append((" << i << ", " << j << "))\n";
+                    has_edges = true;
                 }
             }
         }
+
+        if (!has_edges && num_spins > 1)
+        {
+            ss << "    # WARNING: No couplings found. Adding dummy edge to prevent runtime crash.\n";
+            ss << "    edges.append((nodes[0], nodes[1]))\n";
+            ss << "    weights_list.append(0.0)\n";
+            ss << "    edge_indices_list.append((0, 1))\n";
+        }
+
         ss << "    weights = jnp.array(weights_list, dtype=jnp.float32)\n\n";
 
         // 8. Generate Block Coloring (Optimization from GraphColoringPass)
@@ -219,78 +236,135 @@ namespace thermolang::codegen
             ss << "    ]\n";
         }
 
-        // 9. Generate Logic for Denoising vs Annealing
-        if (denoise_instr)
+        // 9. Temperature/Beta handling with noise shaping baked into parameters to avoid shape issues
+        double initial_temp_scalar = 1.0;
+        int64_t steps = 0;
+        if (anneal_call)
         {
-            // DTM Logic
-            double sigma = get_const_val<double>(denoise_instr->initial_sigma, program);
-            int64_t steps = get_const_val<int64_t>(denoise_instr->steps, program);
+            initial_temp_scalar = get_const_val<double>(anneal_call->args[1], program);
+            steps = get_const_val<int64_t>(anneal_call->args[3], program);
+        }
+        else if (denoise_instr)
+        {
+            initial_temp_scalar = 1.0; // Denoise uses beta ~ 1.0
+            steps = get_const_val<int64_t>(denoise_instr->steps, program);
+        }
 
-            ss << "\n    # 3. Denoising Thermodynamic Model (DTM) Configuration\n";
-            ss << "    # Mode: Reverse Diffusion / Denoising\n";
+        ss << "    # 3. Temperature configuration\n";
+        ss << "    global_beta = jnp.array(1.0 / " << initial_temp_scalar << ", dtype=jnp.float32)\n";
 
-            // In DTM, beta is typically fixed (e.g., 1.0) while the effective noise is managed
-            // by the sampling process or a schedule that reduces sigma.
+        if (has_local_temperatures)
+        {
+            ss << "    # Noise shaping: bake per-spin beta into biases/weights to avoid broadcasting issues\n";
+            ss << "    local_temperatures = jnp.array(" << format_python_list(ebm_instr->local_temperatures)
+               << ", dtype=jnp.float32)\n";
+            ss << "    beta_vector = global_beta * (1.0 / local_temperatures)\n";
+
+            // Bias scaling
+            ss << "    biases = biases * beta_vector\n";
+
+            // Edge scaling by sqrt(beta_i * beta_j)
+            ss << "    edge_inds = jnp.array(edge_indices_list)\n";
+            ss << "    if len(edge_inds) > 0:\n";
+            ss << "        beta_i = beta_vector[edge_inds[:, 0]]\n";
+            ss << "        beta_j = beta_vector[edge_inds[:, 1]]\n";
+            ss << "        edge_scales = jnp.sqrt(beta_i * beta_j)\n";
+            ss << "        weights = weights * edge_scales\n";
+
             ss << "    beta = jnp.array(1.0, dtype=jnp.float32)\n";
-            ss << "    model = IsingEBM(nodes, edges, biases, weights, beta)\n";
-            ss << "    program = IsingSamplingProgram(model, free_blocks, clamped_blocks=[])\n";
-
-            // Mapping sigma/steps to a thrml schedule.
-            // We interpret 'steps' as the sampling duration.
-            ss << "    # Schedule derived from DenoiseInstr: steps=" << steps << ", initial_sigma=" << sigma << "\n";
-            ss << "    schedule = SamplingSchedule(n_warmup=0, n_samples=1, steps_per_sample=" << steps << ")\n";
-
-            ss << "    key = jax.random.key(0)\n";
-            ss << "    k_init, k_samp = jax.random.split(key, 2)\n";
-
-            // Initialization: Denoising starts from a high-noise state (random/hinton init)
-            ss << "    init_state = hinton_init(k_init, model, free_blocks, ())\n";
-
-            ss << "    print(f'Running Denoising (" << steps << " steps)...')\n";
-            ss << "    samples = sample_states(k_samp, program, schedule, init_state, [], [Block(nodes)])\n";
+            ss << "    print(f'[beta_summary] min={float(jnp.min(beta_vector)):.4f}, max={float(jnp.max(beta_vector)):.4f}')\n";
         }
         else
         {
-            // Standard Annealing Logic
-            double initial_temp = get_const_val<double>(anneal_call->args[1], program);
-            // cooling_rate is handled by the iterative loop in a full implementation,
-            // or by thrml's internal scheduling if available.
-            // For this output, we map to a standard sampling schedule.
-            int64_t steps = get_const_val<int64_t>(anneal_call->args[3], program);
-
-            ss << "\n    # 3. Thermal Annealing Configuration\n";
-            ss << "    # Mode: Optimization / Annealing\n";
-            ss << "    # Converting Temp " << initial_temp << " -> Beta " << (1.0 / initial_temp) << "\n";
-
-            ss << "    beta = jnp.array(1.0 / " << initial_temp << ", dtype=jnp.float32)\n";
-            ss << "    model = IsingEBM(nodes, edges, biases, weights, beta)\n";
-            ss << "    program = IsingSamplingProgram(model, free_blocks, clamped_blocks=[])\n";
-
-            ss << "    # Schedule: " << steps << " total steps (50% warmup)\n";
-            ss << "    schedule = SamplingSchedule(n_warmup=" << steps / 2
-               << ", n_samples=1, steps_per_sample=" << steps / 2 << ")\n";
-
-            ss << "    key = jax.random.key(0)\n";
-            ss << "    k_init, k_samp = jax.random.split(key, 2)\n";
-            ss << "    init_state = hinton_init(k_init, model, free_blocks, ())\n";
-
-            ss << "    print(f'Running Thermal Annealing...')\n";
-            ss << "    samples = sample_states(k_samp, program, schedule, init_state, [], [Block(nodes)])\n";
+            ss << "    beta = global_beta\n";
+            ss << "    print(f'[beta_summary] min={float(beta):.4f}, max={float(beta):.4f}')\n";
         }
 
+        ss << "    model = IsingEBM(nodes, edges, biases, weights, beta)\n";
+        ss << "    program = IsingSamplingProgram(model, free_blocks, clamped_blocks=[])\n";
+
+        ss << "    schedule = SamplingSchedule(n_warmup=";
+        if (denoise_instr)
+        {
+            ss << 0 << ", n_samples=1, steps_per_sample=" << steps << ")\n";
+        }
+        else
+        {
+            ss << steps / 2 << ", n_samples=1, steps_per_sample=" << steps / 2 << ")\n";
+        }
+
+        ss << "    key = jax.random.key(0)\n";
+        ss << "    k_init, k_samp = jax.random.split(key, 2)\n";
+        ss << "    init_state = hinton_init(k_init, model, free_blocks, ())\n";
+
+        if (denoise_instr)
+        {
+            ss << "    print(f'Running Denoising (" << steps << " steps)...')\n";
+        }
+        else
+        {
+            ss << "    print(f'Running Thermal Annealing...')\n";
+        }
+        ss << "    samples = sample_states(k_samp, program, schedule, init_state, [], [Block(nodes)])\n";
+
         // 10. Process Output
-        ss << "\n    # 4. Result Processing\n";
-        ss << "    # Extract final state from samples [n_samples, n_chains, n_nodes]\n";
-        ss << "    # Here we take the first sample of the first chain.\n";
+        ss << "\n    # 4. Result Processing & Energy Metric\n";
+        ss << "    # We extract the final sample from the first chain\n";
         ss << "    final_state = samples[0][0]\n";
 
         ss << "    # Convert boolean spins (True/False) back to Ising spins (+1/-1)\n";
-        ss << "    final_state_int = 2 * final_state.astype(jnp.int8) - 1\n";
-        ss << "    final_state_str = ', '.join(map(str, final_state_int.tolist()))\n";
+        ss << "    # True -> +1, False -> -1\n";
+        ss << "    s = 2 * final_state.astype(jnp.int8) - 1\n";
 
-        ss << "    # Standard output format for ThermoLang benchmarks\n";
+        ss << "    # Calculate Field Energy: E_field = - sum(h_i * s_i)\n";
+        ss << "    E_field = -jnp.dot(biases, s)\n";
+
+        ss << "    # Calculate Coupling Energy: E_coupling = - sum(J_ij * s_i * s_j)\n";
+        ss << "    # We iterate over the edges we constructed earlier\n";
+        ss << "    E_coupling = 0.0\n";
+        ss << "    # Note: thrml edges are (node_u, node_v). We need indices.\n";
+        ss << "    # Since we constructed nodes sequentially, we can map back easily.\n";
+
+        // Inject a Python loop to calculate coupling energy using the weights array
+        // We know the structure of 'edges' and 'weights' from the generation block above
+        ss << "    # Re-calculating indices for energy computation\n";
+        ss << "    idx_list = []\n";
+        for (size_t i = 0; i < J.size(); ++i)
+        {
+            for (size_t j = i + 1; j < J[i].size(); ++j)
+            {
+                if (std::abs(J[i][j]) > 1e-9)
+                {
+                    ss << "    idx_list.append((" << i << ", " << j << "))\n";
+                }
+            }
+        }
+        ss << "    idx_arr = jnp.array(idx_list)\n";
+        ss << "    if len(idx_arr) > 0:\n";
+        ss << "        s_i = s[idx_arr[:, 0]]\n";
+        ss << "        s_j = s[idx_arr[:, 1]]\n";
+        ss << "        # weights array was defined in step 1\n";
+        ss << "        E_coupling = -jnp.sum(weights * s_i * s_j)\n";
+
+        ss << "    final_energy = E_field + E_coupling\n";
+
+        ss << "    final_state_str = ', '.join(map(str, s.tolist()))\n";
+
+        // Critical: Print the Energy in a parsable format
+        ss << "    print(f'[FINAL_ENERGY]: {final_energy}')\n";
         ss << "    print(f'[FINAL_STATE]: [{final_state_str}]')\n";
-        ss << "    return final_state_int\n\n";
+
+        // Telemetry: per-spin variance across all chains/samples (robust to list/array outputs)
+        ss << "    try:\n";
+        ss << "        all_samples = jnp.array(samples).reshape(-1, " << num_spins << ")\n";
+        ss << "        float_samples = 2.0 * all_samples.astype(jnp.float32) - 1.0\n";
+        ss << "        means = jnp.mean(float_samples, axis=0)\n";
+        ss << "        variances = 1.0 - (means ** 2)\n";
+        ss << "        var_str = ','.join([f'{v:.4f}' for v in variances.tolist()])\n";
+        ss << "        print(f'[VARIANCES]: {var_str}')\n";
+        ss << "    except Exception as e:\n";
+        ss << "        print(f'[VARIANCES]: error')\n";
+        ss << "    return s\n\n";
 
         ss << "if __name__ == '__main__':\n";
         ss << "    main()\n";

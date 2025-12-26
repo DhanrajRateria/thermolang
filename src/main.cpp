@@ -18,8 +18,10 @@
 #include "thermolang/optimizer/EnergyFunctionOptimizer.h"
 #include "thermolang/optimizer/CircuitTopologyOptimizer.h"
 #include "thermolang/optimizer/VarianceTrackingPass.h"
+#include "thermolang/optimizer/NoiseShapingPass.h"
 #include "thermolang/optimizer/ThermalSchedulingPass.h"
 #include "thermolang/optimizer/GraphColoringPass.h"
+#include "thermolang/optimizer/NoiseShapingPass.h"
 
 // --- Code Generator Headers ---
 #include "thermolang/codegen/CodeGenerator.h"
@@ -76,6 +78,8 @@ void run(const std::string &source, const std::string &target, bool enable_optim
         opt_manager.add_pass(std::make_unique<thermolang::optimizer::EnergyFunctionPass>());
         opt_manager.add_pass(std::make_unique<thermolang::optimizer::CircuitTopologyPass>());
         opt_manager.add_pass(std::make_unique<thermolang::optimizer::VarianceTrackingPass>());
+        // Apply variable-temperature shaping after variance tracking and before scheduling
+        opt_manager.add_pass(std::make_unique<thermolang::optimizer::NoiseShapingPass>());
 
         auto thermal_pass = std::make_unique<thermolang::optimizer::ThermalSchedulingPass>();
         thermal_pass->set_program_ir(&ir_program);

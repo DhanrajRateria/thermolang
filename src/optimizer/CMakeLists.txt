@@ -9,6 +9,7 @@ add_library(ThermoLangOptimizer
     ThermalSchedulingPass.cpp
     ParallelizationPass.cpp
     GraphColoringPass.cpp
+        NoiseShapingPass.cpp
 )
 
 # Publicly expose the include directory for this library
