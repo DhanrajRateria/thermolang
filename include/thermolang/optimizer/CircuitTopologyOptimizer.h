@@ -14,13 +14,8 @@ namespace thermolang::optimizer
         bool run(ir::FunctionIR &function_ir) override;
 
     private:
-        // Find optimal RLC circuit arrangements
-        bool optimize_circuit_topology(ir::FunctionIR &function_ir);
-
-        // Minimize coupling overhead
+        bool optimize_circuit_topology(ir::FunctionIR &function_ir, ir::DiscreteEBMInstr *ebm);
         bool optimize_couplings(ir::FunctionIR &function_ir);
-
-        // Balance parallel processing and thermal coherence
         bool partition_computation(ir::FunctionIR &function_ir, int parallel_units = 4);
     };
 

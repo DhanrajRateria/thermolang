@@ -5,9 +5,9 @@ import sys
 import matplotlib.pyplot as plt
 
 # Configuration
-SOURCE_FILE = "examples/random_dense.thermo"
+SOURCE_FILE = "examples/star_graph.thermo"
 COMPILER = "./build/thermolangc"
-PYTHON_GEN_FILE = "random_dense_thrml.py" # Output of compiler
+PYTHON_GEN_FILE = "star_graph_thrml.py" # Output of compiler
 
 # The 4 Modes of your NoiseShapingPass
 MODES = ["off", "degree", "variance", "degree+variance"]

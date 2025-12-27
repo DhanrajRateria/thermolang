@@ -1,0 +1,15 @@
+// Teleportation Demo
+// Connect two spins that are physically furthest apart on an 8x8 grid.
+// The compiler MUST create a chain of ~14 qubits to connect them.
+
+energy fn teleport_model(s_start: float, s_end: float) -> float {
+    // Strong coupling between start and end
+    // In software: direct connection.
+    // In hardware: requires routing across the entire chip.
+    return -1.0 * s_start * s_end;
+}
+
+fn main() -> void {
+    // We expect the hardware to align them (both +1 or both -1)
+    let res = thermal_anneal(teleport_model, 5.0, 0.99, 1000);
+}

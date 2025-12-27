@@ -1,7 +1,5 @@
 `timescale 1ns / 1ps
-`include "ring_oscillator.v"
-`include "trng.v"
-`include "spu_core.v"
+// Note: We do NOT include files here. We link them in the command line.
 
 module tb_spu_core;
     reg clk, rst_n;
@@ -19,24 +17,25 @@ module tb_spu_core;
         .current_spin_state(out_spin)
     );
 
-    initial begin
-        clk=0; 
-        forever #5 clk=~clk;
-    end
+    always #5 clk = ~clk; // 100MHz clock
 
     initial begin
-        $dumpfile("spu_core_test.vcd");
+        $dumpfile("spu_core.vcd");
         $dumpvars(0, tb_spu_core);
         
-        rst_n = 0; #20; rst_n = 1;
-
-        // Set parameters to encourage flipping
-        h = 0; 
-        j0=0; j1=0; j2=0; j3=0;
-        s0=1; s1=1; s2=1; s3=1;
-        temp = 16'd1000; // High temp = high randomness
-
+        clk = 0; rst_n = 0;
+        h=0; j0=0; j1=0; j2=0; j3=0; s0=1; s1=1; s2=1; s3=1;
+        
+        #20 rst_n = 1;
+        
+        // High temp -> Expect random flipping
+        temp = 16'd2000; 
         #5000;
+        
+        // Zero temp -> Expect freezing
+        temp = 0;
+        #2000;
+        
         $finish;
     end
 endmodule

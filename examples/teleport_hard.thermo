@@ -1,0 +1,11 @@
+// Teleportation Demo (Corner to Corner)
+// We define 64 variables to fill the 8x8 grid.
+energy fn teleport_hard(s0: float, s1: float, s2: float, s3: float, s4: float, s5: float, s6: float, s7: float, s8: float, s9: float, s10: float, s11: float, s12: float, s13: float, s14: float, s15: float, s16: float, s17: float, s18: float, s19: float, s20: float, s21: float, s22: float, s23: float, s24: float, s25: float, s26: float, s27: float, s28: float, s29: float, s30: float, s31: float, s32: float, s33: float, s34: float, s35: float, s36: float, s37: float, s38: float, s39: float, s40: float, s41: float, s42: float, s43: float, s44: float, s45: float, s46: float, s47: float, s48: float, s49: float, s50: float, s51: float, s52: float, s53: float, s54: float, s55: float, s56: float, s57: float, s58: float, s59: float, s60: float, s61: float, s62: float, s63: float) -> float {
+    // Connect Top-Left (s0) to Bottom-Right (s63)
+    let E = -1.0 * s0 * s63;
+    return E;
+}
+
+fn main() -> void {
+    let res = thermal_anneal(teleport_hard, 5.0, 0.99, 1000);
+}

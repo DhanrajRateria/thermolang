@@ -1,0 +1,63 @@
+// RAG Context Selector (Max Relevance, Min Redundancy)
+energy fn rag_selector(doc0: float, doc1: float, doc2: float, doc3: float, doc4: float, doc5: float, doc6: float, doc7: float, doc8: float, doc9: float) -> float {
+    let E = 0.0;
+    E = E + -0.7966 * doc0; // Relevance reward
+    E = E + -0.4950 * doc1; // Relevance reward
+    E = E + -0.8727 * doc2; // Relevance reward
+    E = E + -0.7276 * doc3; // Relevance reward
+    E = E + -0.1848 * doc4; // Relevance reward
+    E = E + -0.9781 * doc5; // Relevance reward
+    E = E + -0.7850 * doc6; // Relevance reward
+    E = E + -0.8075 * doc7; // Relevance reward
+    E = E + -0.2153 * doc8; // Relevance reward
+    E = E + -0.5053 * doc9; // Relevance reward
+    E = E + 1.8000 * doc0 * doc1; // Redundancy penalty
+    E = E + 1.8000 * doc0 * doc2; // Redundancy penalty
+    E = E + 0.6439 * doc0 * doc3; // Redundancy penalty
+    E = E + 0.8228 * doc0 * doc4; // Redundancy penalty
+    E = E + 0.4434 * doc0 * doc5; // Redundancy penalty
+    E = E + 0.2272 * doc0 * doc6; // Redundancy penalty
+    E = E + 0.5546 * doc0 * doc7; // Redundancy penalty
+    E = E + 0.0638 * doc0 * doc8; // Redundancy penalty
+    E = E + 0.8276 * doc0 * doc9; // Redundancy penalty
+    E = E + 1.8000 * doc1 * doc2; // Redundancy penalty
+    E = E + 0.7581 * doc1 * doc3; // Redundancy penalty
+    E = E + 0.3545 * doc1 * doc4; // Redundancy penalty
+    E = E + 0.9707 * doc1 * doc5; // Redundancy penalty
+    E = E + 0.8931 * doc1 * doc6; // Redundancy penalty
+    E = E + 0.7784 * doc1 * doc7; // Redundancy penalty
+    E = E + 0.1946 * doc1 * doc8; // Redundancy penalty
+    E = E + 0.4667 * doc1 * doc9; // Redundancy penalty
+    E = E + 0.0438 * doc2 * doc3; // Redundancy penalty
+    E = E + 0.1543 * doc2 * doc4; // Redundancy penalty
+    E = E + 0.6830 * doc2 * doc5; // Redundancy penalty
+    E = E + 0.7448 * doc2 * doc6; // Redundancy penalty
+    E = E + 0.9675 * doc2 * doc7; // Redundancy penalty
+    E = E + 0.3258 * doc2 * doc8; // Redundancy penalty
+    E = E + 0.3705 * doc2 * doc9; // Redundancy penalty
+    E = E + 0.4696 * doc3 * doc4; // Redundancy penalty
+    E = E + 0.1895 * doc3 * doc5; // Redundancy penalty
+    E = E + 0.1299 * doc3 * doc6; // Redundancy penalty
+    E = E + 0.4757 * doc3 * doc7; // Redundancy penalty
+    E = E + 0.2269 * doc3 * doc8; // Redundancy penalty
+    E = E + 0.6698 * doc3 * doc9; // Redundancy penalty
+    E = E + 0.4372 * doc4 * doc5; // Redundancy penalty
+    E = E + 0.8327 * doc4 * doc6; // Redundancy penalty
+    E = E + 0.7003 * doc4 * doc7; // Redundancy penalty
+    E = E + 0.3124 * doc4 * doc8; // Redundancy penalty
+    E = E + 0.8323 * doc4 * doc9; // Redundancy penalty
+    E = E + 0.8048 * doc5 * doc6; // Redundancy penalty
+    E = E + 0.3875 * doc5 * doc7; // Redundancy penalty
+    E = E + 0.2883 * doc5 * doc8; // Redundancy penalty
+    E = E + 0.6825 * doc5 * doc9; // Redundancy penalty
+    E = E + 0.1398 * doc6 * doc7; // Redundancy penalty
+    E = E + 0.1999 * doc6 * doc8; // Redundancy penalty
+    E = E + 0.7869 * doc7 * doc8; // Redundancy penalty
+    E = E + 0.6649 * doc7 * doc9; // Redundancy penalty
+    E = E + 0.7052 * doc8 * doc9; // Redundancy penalty
+    return E;
+}
+
+fn main() -> void {
+    let res = thermal_anneal(rag_selector, 10.0, 0.95, 2000);
+}
