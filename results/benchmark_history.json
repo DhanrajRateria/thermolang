@@ -1,0 +1,27 @@
+[
+    {
+        "final_state": [
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1
+        ],
+        "order_parameter": 1.0,
+        "status": "Success",
+        "timestamp": "2025-12-27T09:07:57.002198",
+        "duration_seconds": 13.890545845031738,
+        "backend": "FPGA_Digital_Twin"
+    }
+]

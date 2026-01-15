@@ -1,0 +1,47 @@
+[*]
+[*] GTKWave Analyzer v3.3.116 (w)1999-2023 BSI
+[*] Sat Dec 27 09:07:33 2025
+[*]
+[dumpfile] "/home/dhanraj/thermolang/hardware/sim/spu_trace.vcd"
+[dumpfile_mtime] "Sat Dec 27 08:57:42 2025"
+[dumpfile_size] 245413386
+[savefile] "/home/dhanraj/thermolang/hardware/waves/default_view.gtkw"
+[timestart] 3149000
+[size] 1000 600
+[pos] -1 -1
+*-18.000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] tb_spu_array.
+[treeopen] tb_spu_array.dut.
+[treeopen] tb_spu_array.dut.genblk1[1].
+[treeopen] tb_spu_array.dut.genblk1[1].genblk1[0].
+[treeopen] tb_spu_array.dut.genblk1[1].genblk1[0].spu_core_inst.
+[treeopen] tb_spu_array.dut.genblk1[1].genblk1[0].spu_core_inst.entropy_source.
+[sst_width] 276
+[signals_width] 166
+[sst_expanded] 1
+[sst_vpaned_height] 157
+@8022
+tb_spu_array.dut.temperature[15:0]
+@22
+tb_spu_array.dut.genblk1[1].genblk1[0].spu_core_inst.entropy_source.rand_out[15:0]
+@420
+tb_spu_array.dut.spin_out_0_0[1:0]
+tb_spu_array.dut.spin_out_0_1[1:0]
+@421
+tb_spu_array.dut.spin_out_0_2[1:0]
+@28
+tb_spu_array.dut.spin_out_0_3[1:0]
+tb_spu_array.dut.spin_out_1_1[1:0]
+tb_spu_array.dut.spin_out_1_0[1:0]
+tb_spu_array.dut.spin_out_1_2[1:0]
+tb_spu_array.dut.spin_out_3_1[1:0]
+tb_spu_array.dut.spin_out_3_2[1:0]
+tb_spu_array.dut.spin_out_3_3[1:0]
+tb_spu_array.dut.spin_out_3_0[1:0]
+tb_spu_array.dut.spin_out_2_3[1:0]
+tb_spu_array.dut.spin_out_2_2[1:0]
+tb_spu_array.dut.spin_out_2_1[1:0]
+tb_spu_array.dut.spin_out_2_0[1:0]
+tb_spu_array.dut.spin_out_1_3[1:0]
+[pattern_trace] 1
+[pattern_trace] 0

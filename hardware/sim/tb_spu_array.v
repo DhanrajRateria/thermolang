@@ -8,7 +8,7 @@ module tb_spu_array;
     parameter CLK_PERIOD = 10;
     parameter GRID_SIZE = 4;
     // Config file reading params
-    parameter TOTAL_CONFIG_WORDS = GRID_SIZE * GRID_SIZE * 5; 
+    parameter TOTAL_CONFIG_WORDS = 128; 
 
     reg clk;
     reg rst_n;
@@ -141,4 +141,15 @@ module tb_spu_array;
         $write("]\n");
         $finish;
     end
+
+    initial begin
+        // Setup GTKWave dumping
+        $dumpfile("spu_trace.vcd");
+        $dumpvars(0, tb_spu_array);
+        
+        // Point to the correct config file paths
+        // Note: iverilog runs from the directory where vvp is executed
+        $readmemh("config.mem", problem_mem); 
+    end
+
 endmodule

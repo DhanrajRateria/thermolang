@@ -20,3 +20,31 @@ cmake_install.cmake
 # Python Environment
 thermo_env/
 rough/
+
+# Build Directories
+build/
+bin/
+
+# C++ Artifacts
+*.o
+*.a
+*.so
+*.dylib
+
+# Hardware Simulation Artifacts
+hardware/sim/*.vvp
+hardware/sim/*.vcd
+hardware/sim/*.mem
+hardware/sim/*.txt
+hardware/sim/vivado.log
+hardware/sim/vivado.jou
+hardware/sim/xsim.dir/
+
+# Python Artifacts
+__pycache__/
+*.pyc
+.pytest_cache/
+venv/
+
+# OS Junk
+.DS_Store
