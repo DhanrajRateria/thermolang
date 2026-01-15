@@ -21,6 +21,7 @@ add_executable(run_tests
     domain_specific_test.cpp
     control_flow_test.cpp
     e2e_test.cpp
+    embedding_test.cpp
 )
 
 target_compile_definitions(run_tests PRIVATE

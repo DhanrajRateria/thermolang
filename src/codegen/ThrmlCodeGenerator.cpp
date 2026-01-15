@@ -251,33 +251,16 @@ namespace thermolang::codegen
         }
 
         ss << "    # 3. Temperature configuration\n";
-        ss << "    global_beta = jnp.array(1.0 / " << initial_temp_scalar << ", dtype=jnp.float32)\n";
+
+        ss << "    # Initial beta from compiler schedule\n";
+        ss << "    beta = jnp.array(1.0 / " << initial_temp_scalar << ", dtype=jnp.float32)\n";
 
         if (has_local_temperatures)
         {
-            ss << "    # Noise shaping: bake per-spin beta into biases/weights to avoid broadcasting issues\n";
-            ss << "    local_temperatures = jnp.array(" << format_python_list(ebm_instr->local_temperatures)
+            ss << "    # [INFO] Compiler has baked Noise Shaping (local temperatures) into weights.\n";
+            ss << "    # Telemetry only:\n";
+            ss << "    local_temperatures_ref = jnp.array(" << format_python_list(ebm_instr->local_temperatures)
                << ", dtype=jnp.float32)\n";
-            ss << "    beta_vector = global_beta * (1.0 / local_temperatures)\n";
-
-            // Bias scaling
-            ss << "    biases = biases * beta_vector\n";
-
-            // Edge scaling by sqrt(beta_i * beta_j)
-            ss << "    edge_inds = jnp.array(edge_indices_list)\n";
-            ss << "    if len(edge_inds) > 0:\n";
-            ss << "        beta_i = beta_vector[edge_inds[:, 0]]\n";
-            ss << "        beta_j = beta_vector[edge_inds[:, 1]]\n";
-            ss << "        edge_scales = jnp.sqrt(beta_i * beta_j)\n";
-            ss << "        weights = weights * edge_scales\n";
-
-            ss << "    beta = jnp.array(1.0, dtype=jnp.float32)\n";
-            ss << "    print(f'[beta_summary] min={float(jnp.min(beta_vector)):.4f}, max={float(jnp.max(beta_vector)):.4f}')\n";
-        }
-        else
-        {
-            ss << "    beta = global_beta\n";
-            ss << "    print(f'[beta_summary] min={float(beta):.4f}, max={float(beta):.4f}')\n";
         }
 
         ss << "    model = IsingEBM(nodes, edges, biases, weights, beta)\n";
