@@ -1,15 +1,17 @@
+// thermolang/optimizer/NoiseShapingPass.cpp
 #include "thermolang/optimizer/NoiseShapingPass.h"
-#include <iostream>
-#include <cmath>
+
 #include <algorithm>
-#include <unordered_map>
+#include <cmath>
 #include <cstdlib>
-#include <string>
+#include <iostream>
 #include <sstream>
+#include <string>
+#include <unordered_map>
+#include <vector>
 
 namespace thermolang::optimizer
 {
-
     namespace
     {
         struct NoiseShapingConfig
@@ -17,7 +19,17 @@ namespace thermolang::optimizer
             bool enabled = true;
             bool use_degree = true;
             bool use_variance = true;
-            double variance_shrink_cap = 0.5; // max fractional beta shrink from variance
+
+            // Max fractional beta shrink from variance (higher variance -> warmer -> lower beta)
+            double variance_shrink_cap = 0.5;
+
+            // Strength λ: 0 = no shaping, 1 = full shaping
+            double strength = 1.0;
+
+            // IMPORTANT: Default must match old behavior (test expects this)
+            // Old: beta = 1 + degree_ratio, clamped to [1,2]
+            double degree_gain = 1.0;
+
             std::string mode_label = "degree+variance";
         };
 
@@ -28,7 +40,8 @@ namespace thermolang::optimizer
             if (const char *env = std::getenv("NOISE_SHAPING_MODE"))
             {
                 std::string mode(env);
-                std::transform(mode.begin(), mode.end(), mode.begin(), [](unsigned char c)
+                std::transform(mode.begin(), mode.end(), mode.begin(),
+                               [](unsigned char c)
                                { return static_cast<char>(std::tolower(c)); });
 
                 if (mode == "off")
@@ -63,7 +76,34 @@ namespace thermolang::optimizer
                 }
                 catch (...)
                 {
-                    // Keep default on parse failure
+                    // keep default
+                }
+            }
+
+            if (const char *env = std::getenv("NOISE_SHAPING_STRENGTH"))
+            {
+                try
+                {
+                    double v = std::stod(env);
+                    cfg.strength = std::clamp(v, 0.0, 1.0);
+                }
+                catch (...)
+                {
+                    // keep default
+                }
+            }
+
+            // Optional: allows tuning while keeping default test-compatible
+            if (const char *env = std::getenv("NOISE_SHAPING_DEGREE_GAIN"))
+            {
+                try
+                {
+                    double v = std::stod(env);
+                    cfg.degree_gain = std::clamp(v, 0.0, 2.0);
+                }
+                catch (...)
+                {
+                    // keep default
                 }
             }
 
@@ -81,8 +121,7 @@ namespace thermolang::optimizer
 
         bool modified = false;
 
-        // Pre-scan any variance annotations emitted by VarianceTrackingPass so we can
-        // modulate temperatures by uncertainty as well as degree.
+        // Pre-scan variance annotations emitted by VarianceTrackingPass
         std::unordered_map<std::string, double> variance_by_reg;
         for (const auto &block : function_ir.basic_blocks)
         {
@@ -110,11 +149,9 @@ namespace thermolang::optimizer
                 {
                     const size_t n = ebm->spins.size();
                     if (n == 0 || ebm->J_matrix.size() != n)
-                    {
                         continue;
-                    }
 
-                    // Ensure each J row has length n to avoid OOB
+                    // Ensure each J row has length n
                     bool bad_rows = false;
                     for (size_t i = 0; i < n; ++i)
                     {
@@ -125,14 +162,10 @@ namespace thermolang::optimizer
                         }
                     }
                     if (bad_rows)
-                    {
                         continue;
-                    }
 
                     if (!config.use_degree && !config.use_variance)
-                    {
                         continue;
-                    }
 
                     // 0) Inject external variance data if provided (profile-guided)
                     if (const char *var_str = std::getenv("NOISE_SHAPING_VARIANCES"))
@@ -153,13 +186,15 @@ namespace thermolang::optimizer
                             }
                             catch (...)
                             {
+                                // ignore malformed
                             }
                             idx++;
                         }
-                        std::cout << "  NoiseShaping: Injected external variance data for " << std::min<int>(idx, static_cast<int>(n)) << " spins." << std::endl;
+                        std::cout << "  NoiseShaping: Injected external variance data for "
+                                  << std::min<int>(idx, static_cast<int>(n)) << " spins." << std::endl;
                     }
 
-                    // 1) Calculate node degrees from J (if enabled)
+                    // 1) Degree from J
                     std::vector<double> degrees(n, 0.0);
                     if (config.use_degree)
                     {
@@ -167,41 +202,41 @@ namespace thermolang::optimizer
                         {
                             for (size_t j = 0; j < n; ++j)
                             {
-                                if (i == j)
-                                    continue;
+                                if (i == j) continue;
                                 if (std::abs(ebm->J_matrix[i][j]) > 1e-9)
-                                {
                                     degrees[i] += 1.0;
-                                }
                             }
                         }
                     }
 
                     double max_deg = 0.0;
-                    for (double d : degrees)
-                        max_deg = std::max(max_deg, d);
+                    for (double d : degrees) max_deg = std::max(max_deg, d);
 
                     std::cout << "  NoiseShapingPass: mode=" << config.mode_label
+                              << ", strength=" << config.strength
                               << ", shrink_cap=" << config.variance_shrink_cap
+                              << ", degree_gain=" << config.degree_gain
                               << " (" << n << " spins)" << std::endl;
 
-                    // 2) Compute beta_i from normalized degree
-                    // Heuristic: beta_i = 1 + degree_ratio; T_i = 1 / beta_i (relative temp)
+                    // 2) Compute beta/local_T
                     std::vector<double> beta(n, 1.0);
                     std::vector<double> local_T(n, 1.0);
+
+                    // --- Degree shaping (default matches old test expectation)
                     if (config.use_degree && max_deg > 0.0)
                     {
                         for (size_t i = 0; i < n; ++i)
                         {
-                            double degree_ratio = degrees[i] / max_deg; // in [0,1]
-                            double b = 1.0 + degree_ratio;              // nominal [1,2]
-                            beta[i] = std::clamp(b, 1.0, 2.0);          // clamp for stability
-                            local_T[i] = 1.0 / beta[i];                 // in [0.5,1]
+                            double degree_ratio = degrees[i] / max_deg; // [0,1]
+                            double b = 1.0 + config.degree_gain * degree_ratio; // default gain=1 => [1,2]
+                            b = std::clamp(b, 1.0, 2.0); // IMPORTANT: test expects 2.0 max
+                            beta[i] = b;
+                            local_T[i] = 1.0 / beta[i]; // [0.5,1]
                         }
                     }
 
-                    // 2b) Modulate temperatures with variance (higher variance -> warmer / lower beta)
-                    if (config.use_variance && !variance_by_reg.empty())
+                    // --- Variance shaping (optional, only if variance exists)
+                    if (config.use_variance && !variance_by_reg.empty() && config.variance_shrink_cap > 0.0)
                     {
                         std::vector<double> spin_variances(n, -1.0);
                         double max_var = 0.0;
@@ -223,24 +258,28 @@ namespace thermolang::optimizer
                         {
                             for (size_t i = 0; i < n; ++i)
                             {
-                                if (spin_variances[i] < 0.0)
-                                {
-                                    continue; // no variance info
-                                }
-                                double var_ratio = spin_variances[i] / max_var; // [0,1]
-                                // Warm high-variance spins by up to variance_shrink_cap
+                                if (spin_variances[i] < 0.0) continue;
+
+                                double var_ratio = std::clamp(spin_variances[i] / max_var, 0.0, 1.0);
                                 double beta_shrink = std::clamp(1.0 - config.variance_shrink_cap * var_ratio, 0.1, 1.0);
                                 beta[i] *= beta_shrink;
                             }
 
                             for (size_t i = 0; i < n; ++i)
-                            {
                                 local_T[i] = 1.0 / beta[i];
-                            }
                         }
                     }
 
-                    // If nothing changed, skip
+                    // --- Strength blending (λ)
+                    for (size_t i = 0; i < n; ++i)
+                    {
+                        double T_shaped = local_T[i];
+                        double T_blend = (1.0 - config.strength) * 1.0 + config.strength * T_shaped;
+                        local_T[i] = T_blend;
+                        beta[i] = 1.0 / std::max(1e-9, T_blend);
+                    }
+
+                    // Skip if inactive
                     bool active = false;
                     for (size_t i = 0; i < n; ++i)
                     {
@@ -251,32 +290,27 @@ namespace thermolang::optimizer
                         }
                     }
                     if (!active)
-                    {
                         continue;
-                    }
 
-                    // 3) Scale h and J by beta_i
+                    // 3) Scale h and J
                     if (ebm->h_vector.size() == n)
                     {
                         for (size_t i = 0; i < n; ++i)
-                        {
                             ebm->h_vector[i] *= beta[i];
-                        }
                     }
 
+                    // Scale full matrix symmetrically (safe + matches older expectation)
                     for (size_t i = 0; i < n; ++i)
                     {
                         for (size_t j = 0; j < n; ++j)
                         {
-                            if (i == j)
-                                continue;
-                            // Symmetric scaling option: sqrt(beta_i * beta_j)
+                            if (i == j) continue;
                             double scale = std::sqrt(beta[i] * beta[j]);
                             ebm->J_matrix[i][j] *= scale;
                         }
                     }
 
-                    // 4) Record local temperatures in IR for downstream backends
+                    // 4) Emit local temperatures
                     ebm->local_temperatures = std::move(local_T);
 
                     modified = true;

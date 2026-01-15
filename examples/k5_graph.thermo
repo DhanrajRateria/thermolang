@@ -1,17 +1,18 @@
-// K5 Graph (Fully Connected 5 Nodes)
-// This is non-planar. It REQUIRES routing/chains to exist on a 2D grid.
+// K5 (non-planar) antiferromagnetic frustration; also useful for embedding paper
+// Auto-generated benchmark: k5_model, N=5
+
 energy fn k5_model(s0: float, s1: float, s2: float, s3: float, s4: float) -> float {
     let E = 0.0;
-    E = E + 1.0 * s0 * s1;
-    E = E + 1.0 * s0 * s2;
-    E = E + 1.0 * s0 * s3;
-    E = E + 1.0 * s0 * s4;
-    E = E + 1.0 * s1 * s2;
-    E = E + 1.0 * s1 * s3;
-    E = E + 1.0 * s1 * s4;
-    E = E + 1.0 * s2 * s3;
-    E = E + 1.0 * s2 * s4;
-    E = E + 1.0 * s3 * s4;
+    E = E + -1.000000 * s0 * s1;
+    E = E + -1.000000 * s0 * s2;
+    E = E + -1.000000 * s0 * s3;
+    E = E + -1.000000 * s0 * s4;
+    E = E + -1.000000 * s1 * s2;
+    E = E + -1.000000 * s1 * s3;
+    E = E + -1.000000 * s1 * s4;
+    E = E + -1.000000 * s2 * s3;
+    E = E + -1.000000 * s2 * s4;
+    E = E + -1.000000 * s3 * s4;
     return E;
 }
 

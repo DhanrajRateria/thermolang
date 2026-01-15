@@ -2,6 +2,7 @@
 # This script targets Extropic AI's thrml library using JAX.
 import jax
 import jax.numpy as jnp
+import os
 import numpy as np
 from thrml import SpinNode, Block, SamplingSchedule, sample_states
 from thrml.models import IsingEBM, IsingSamplingProgram, hinton_init
@@ -10,130 +11,130 @@ def main():
     print('--- Initializing ThermoLang/thrml Runtime ---')
     # 1. Define Topology (64 spins)
     nodes = [SpinNode() for _ in range(64)]
-    biases = jnp.array([-0.334362, 3.5108, 3.56224, 4.34671, -10.304, 2.18621, -14.016, -1.30634, -14.688, -19.008, 6.84156, 0.344, 6.27572, 0.257202, 12.416, -3.71253, 13.824, 1.14455, 10.048, 6.08, -2.08171, -3.15628, -4.57819, 9.024, 1.45383, -0.684, -2.06907, -4.65535, -0.754305, -8.75772, -9.14352, -1.73195, 0.552984, -2.48626, -0.745885, 16.928, -20.832, -0.434041, 16.384, -0.209, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], dtype=jnp.float32)
+    biases = jnp.array([-0.331584, 3.5151, 3.56736, 4.35066, -10.3178, 2.18904, -14.017, -1.30558, -14.6833, -19.0142, 6.84291, 0.344306, 6.28, 0.252791, 12.4289, -3.71103, 13.8094, 1.13889, 10.0338, 6.08038, -2.07972, -3.15636, -4.57854, 9.03869, 1.45402, -0.683971, -2.06717, -4.65044, -0.752842, -8.75804, -9.14385, -1.73161, 0.554617, -2.48751, -0.744624, 16.9368, -20.8285, -0.434981, 16.3961, -0.209134, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], dtype=jnp.float32)
     # Reconstructing graph from J matrix
     edges = []
     weights_list = []
     edge_indices_list = []
     edges.append((nodes[0], nodes[1]))
-    weights_list.append(1.80041)
+    weights_list.append(1.79943)
     edge_indices_list.append((0, 1))
     edges.append((nodes[0], nodes[8]))
-    weights_list.append(14.8088)
+    weights_list.append(14.803)
     edge_indices_list.append((0, 8))
     edges.append((nodes[1], nodes[9]))
-    weights_list.append(-7.78983)
+    weights_list.append(-7.7858)
     edge_indices_list.append((1, 9))
     edges.append((nodes[2], nodes[3]))
-    weights_list.append(8.33333)
+    weights_list.append(8.3384)
     edge_indices_list.append((2, 3))
     edges.append((nodes[2], nodes[10]))
-    weights_list.append(-6.52006)
+    weights_list.append(-6.51496)
     edge_indices_list.append((2, 10))
     edges.append((nodes[3], nodes[4]))
-    weights_list.append(-12.9831)
+    weights_list.append(-12.973)
     edge_indices_list.append((3, 4))
     edges.append((nodes[4], nodes[5]))
-    weights_list.append(1.98803)
+    weights_list.append(1.98)
     edge_indices_list.append((4, 5))
     edges.append((nodes[4], nodes[12]))
-    weights_list.append(-4.34121)
+    weights_list.append(-4.34882)
     edge_indices_list.append((4, 12))
     edges.append((nodes[5], nodes[6]))
-    weights_list.append(-24.6881)
+    weights_list.append(-24.6824)
     edge_indices_list.append((5, 6))
     edges.append((nodes[6], nodes[7]))
-    weights_list.append(-0.0116124)
+    weights_list.append(-0.00653778)
     edge_indices_list.append((6, 7))
     edges.append((nodes[6], nodes[14]))
-    weights_list.append(5.44)
+    weights_list.append(5.44566)
     edge_indices_list.append((6, 14))
     edges.append((nodes[8], nodes[9]))
-    weights_list.append(17.376)
+    weights_list.append(17.3715)
     edge_indices_list.append((8, 9))
     edges.append((nodes[8], nodes[16]))
-    weights_list.append(-49.632)
+    weights_list.append(-49.6326)
     edge_indices_list.append((8, 16))
     edges.append((nodes[9], nodes[17]))
-    weights_list.append(-23.5724)
+    weights_list.append(-23.571)
     edge_indices_list.append((9, 17))
     edges.append((nodes[10], nodes[18]))
-    weights_list.append(31.9505)
+    weights_list.append(31.9522)
     edge_indices_list.append((10, 18))
     edges.append((nodes[12], nodes[13]))
-    weights_list.append(36.7413)
+    weights_list.append(36.7469)
     edge_indices_list.append((12, 13))
     edges.append((nodes[13], nodes[14]))
-    weights_list.append(1.92717)
+    weights_list.append(1.91892)
     edge_indices_list.append((13, 14))
     edges.append((nodes[14], nodes[22]))
-    weights_list.append(54.8534)
+    weights_list.append(54.8531)
     edge_indices_list.append((14, 22))
     edges.append((nodes[15], nodes[23]))
-    weights_list.append(-11.6356)
+    weights_list.append(-11.64)
     edge_indices_list.append((15, 23))
     edges.append((nodes[16], nodes[17]))
-    weights_list.append(-1.98803)
+    weights_list.append(-1.98953)
     edge_indices_list.append((16, 17))
     edges.append((nodes[16], nodes[24]))
-    weights_list.append(-12.7736)
+    weights_list.append(-12.7697)
     edge_indices_list.append((16, 24))
     edges.append((nodes[18], nodes[19]))
-    weights_list.append(-9.792)
+    weights_list.append(-9.79581)
     edge_indices_list.append((18, 19))
     edges.append((nodes[18], nodes[26]))
-    weights_list.append(22.47)
+    weights_list.append(22.4744)
     edge_indices_list.append((18, 26))
     edges.append((nodes[19], nodes[20]))
-    weights_list.append(17.1747)
+    weights_list.append(17.1801)
     edge_indices_list.append((19, 20))
     edges.append((nodes[19], nodes[27]))
-    weights_list.append(-14.0379)
+    weights_list.append(-14.0333)
     edge_indices_list.append((19, 27))
     edges.append((nodes[21], nodes[29]))
-    weights_list.append(13.4127)
+    weights_list.append(13.4131)
     edge_indices_list.append((21, 29))
     edges.append((nodes[22], nodes[23]))
-    weights_list.append(-24.1201)
+    weights_list.append(-24.1176)
     edge_indices_list.append((22, 23))
     edges.append((nodes[23], nodes[31]))
-    weights_list.append(19.8224)
+    weights_list.append(19.8197)
     edge_indices_list.append((23, 31))
     edges.append((nodes[27], nodes[35]))
-    weights_list.append(7.4044)
+    weights_list.append(7.41428)
     edge_indices_list.append((27, 35))
     edges.append((nodes[28], nodes[36]))
-    weights_list.append(1.33543)
+    weights_list.append(1.33466)
     edge_indices_list.append((28, 36))
     edges.append((nodes[29], nodes[30]))
-    weights_list.append(5.02829)
+    weights_list.append(5.03467)
     edge_indices_list.append((29, 30))
     edges.append((nodes[30], nodes[38]))
-    weights_list.append(11.6239)
+    weights_list.append(11.6312)
     edge_indices_list.append((30, 38))
     edges.append((nodes[32], nodes[33]))
-    weights_list.append(-13.9501)
+    weights_list.append(-13.9505)
     edge_indices_list.append((32, 33))
     edges.append((nodes[32], nodes[40]))
     weights_list.append(-25.7202)
     edge_indices_list.append((32, 40))
     edges.append((nodes[34], nodes[35]))
-    weights_list.append(-20.6512)
+    weights_list.append(-20.6536)
     edge_indices_list.append((34, 35))
     edges.append((nodes[34], nodes[42]))
-    weights_list.append(1.50463)
+    weights_list.append(1.50437)
     edge_indices_list.append((34, 42))
     edges.append((nodes[35], nodes[36]))
-    weights_list.append(-38.72)
+    weights_list.append(-38.7217)
     edge_indices_list.append((35, 36))
     edges.append((nodes[36], nodes[44]))
     weights_list.append(-40.572)
     edge_indices_list.append((36, 44))
     edges.append((nodes[37], nodes[38]))
-    weights_list.append(-14.62)
+    weights_list.append(-14.6178)
     edge_indices_list.append((37, 38))
     edges.append((nodes[38], nodes[46]))
-    weights_list.append(-16.9388)
+    weights_list.append(-16.9358)
     edge_indices_list.append((38, 46))
     edges.append((nodes[40], nodes[41]))
     weights_list.append(-25.7202)
@@ -157,33 +158,39 @@ def main():
         Block([nodes[i] for i in [2, 5, 12, 27, 34]]),
     ]
     # 3. Temperature configuration
-    # Initial beta from compiler schedule
+    # Base beta from compiler schedule (kept consistent with previous generator)
     beta = jnp.array(1.0 / 9.2222, dtype=jnp.float32)
     # [INFO] Compiler has baked Noise Shaping (local temperatures) into weights.
     # Telemetry only:
     local_temperatures_ref = jnp.array([0.6, 0.6, 0.6, 0.6, 0.5, 0.6, 0.5, 0.75, 0.5, 0.5, 0.6, 1, 0.6, 0.6, 0.5, 0.75, 0.5, 0.6, 0.5, 0.5, 0.75, 0.75, 0.6, 0.5, 0.75, 1, 0.75, 0.6, 0.75, 0.6, 0.6, 0.75, 0.6, 0.75, 0.6, 0.5, 0.5, 0.75, 0.5, 1, 0.6, 0.6, 0.6, 1, 0.6, 0.6, 0.6, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], dtype=jnp.float32)
     model = IsingEBM(nodes, edges, biases, weights, beta)
     program = IsingSamplingProgram(model, free_blocks, clamped_blocks=[])
-    schedule = SamplingSchedule(n_warmup=20000, n_samples=1, steps_per_sample=20000)
-    key = jax.random.key(0)
+
+    # 3b. Schedules
+    # Normal schedule: matches the previous behavior closely for anneal (warmup then one sample)
+    # Profiling schedule: used ONLY to estimate per-spin variances robustly
+    PROFILE_VARIANCE = os.getenv('THERMOLANG_PROFILE_VARIANCE', '0') == '1'
+    normal_schedule = SamplingSchedule(n_warmup=20000, n_samples=1, steps_per_sample=20000)
+    profile_schedule = SamplingSchedule(n_warmup=2000, n_samples=200, steps_per_sample=200)
+    schedule = profile_schedule if PROFILE_VARIANCE else normal_schedule
+
+    key = jax.random.key(4)
+    rcheck = jax.random.uniform(key, (3,), dtype=jnp.float32)
+    print(f"[SEED_CHECK]: {rcheck.tolist()}")
     k_init, k_samp = jax.random.split(key, 2)
     init_state = hinton_init(k_init, model, free_blocks, ())
-    print(f'Running Thermal Annealing...')
+    print('Running Thermal Annealing...')
     samples = sample_states(k_samp, program, schedule, init_state, [], [Block(nodes)])
 
     # 4. Result Processing & Energy Metric
-    # We extract the final sample from the first chain
-    final_state = samples[0][0]
-    # Convert boolean spins (True/False) back to Ising spins (+1/-1)
-    # True -> +1, False -> -1
-    s = 2 * final_state.astype(jnp.int8) - 1
-    # Calculate Field Energy: E_field = - sum(h_i * s_i)
-    E_field = -jnp.dot(biases, s)
-    # Calculate Coupling Energy: E_coupling = - sum(J_ij * s_i * s_j)
-    # We iterate over the edges we constructed earlier
-    E_coupling = 0.0
-    # Note: thrml edges are (node_u, node_v). We need indices.
-    # Since we constructed nodes sequentially, we can map back easily.
+    # IMPORTANT: choose the best (minimum energy) sample across all chains/samples
+    # This makes comparisons stable and restores the expected benefit of degree shaping.
+    samples_arr = jnp.array(samples)
+    # Flatten to [K, N]
+    flat = samples_arr.reshape(-1, 64)
+    # Convert boolean spins -> Ising spins (+1/-1)
+    s_all = 2 * flat.astype(jnp.int8) - 1
+
     # Re-calculating indices for energy computation
     idx_list = []
     idx_list.append((0, 1))
@@ -231,24 +238,32 @@ def main():
     idx_list.append((44, 45))
     idx_list.append((45, 46))
     idx_arr = jnp.array(idx_list)
-    if len(idx_arr) > 0:
-        s_i = s[idx_arr[:, 0]]
-        s_j = s[idx_arr[:, 1]]
-        # weights array was defined in step 1
-        E_coupling = -jnp.sum(weights * s_i * s_j)
-    final_energy = E_field + E_coupling
+
+    # Field energy for each sample: E_field = - sum_i (h_i * s_i)
+    E_field_all = -jnp.einsum('i,ki->k', biases, s_all.astype(jnp.float32))
+    # Coupling energy for each sample: E_coupling = - sum_edges (J_ij * s_i * s_j)
+    if idx_arr.size == 0:
+        E_coupling_all = jnp.zeros((s_all.shape[0],), dtype=jnp.float32)
+    else:
+        s_i = s_all[:, idx_arr[:, 0]].astype(jnp.float32)
+        s_j = s_all[:, idx_arr[:, 1]].astype(jnp.float32)
+        E_coupling_all = -jnp.sum(weights[None, :] * s_i * s_j, axis=1)
+    E_all = E_field_all + E_coupling_all
+    best_idx = jnp.argmin(E_all)
+    s = s_all[best_idx]
+    final_energy = E_all[best_idx]
+
     final_state_str = ', '.join(map(str, s.tolist()))
     print(f'[FINAL_ENERGY]: {final_energy}')
     print(f'[FINAL_STATE]: [{final_state_str}]')
     try:
-        all_samples = jnp.array(samples).reshape(-1, 64)
-        float_samples = 2.0 * all_samples.astype(jnp.float32) - 1.0
+        float_samples = s_all.astype(jnp.float32)
         means = jnp.mean(float_samples, axis=0)
         variances = 1.0 - (means ** 2)
         var_str = ','.join([f'{v:.4f}' for v in variances.tolist()])
         print(f'[VARIANCES]: {var_str}')
-    except Exception as e:
-        print(f'[VARIANCES]: error')
+    except Exception:
+        print('[VARIANCES]: error')
     return s
 
 if __name__ == '__main__':

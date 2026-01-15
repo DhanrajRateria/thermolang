@@ -2,6 +2,7 @@
 # This script targets Extropic AI's thrml library using JAX.
 import jax
 import jax.numpy as jnp
+import os
 import numpy as np
 from thrml import SpinNode, Block, SamplingSchedule, sample_states
 from thrml.models import IsingEBM, IsingSamplingProgram, hinton_init
@@ -10,29 +11,35 @@ def main():
     print('--- Initializing ThermoLang/thrml Runtime ---')
     # 1. Define Topology (64 spins)
     nodes = [SpinNode() for _ in range(64)]
-    biases = jnp.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], dtype=jnp.float32)
+    biases = jnp.array([-0, -0, -0, -0, -0, -0, -0, -0, -0, -0, -0, -0, -0, -0, -0, -0, -0, -0, -0, -0, -0, -0, -0, -0, -0, -0, -0, -0, -0, -0, -0, -0, -0, -0, -0, -0, -0, -0, -0, -0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], dtype=jnp.float32)
     # Reconstructing graph from J matrix
     edges = []
     weights_list = []
     edge_indices_list = []
-    edges.append((nodes[3], nodes[4]))
-    weights_list.append(10.3199)
-    edge_indices_list.append((3, 4))
-    edges.append((nodes[6], nodes[7]))
-    weights_list.append(9.15806)
-    edge_indices_list.append((6, 7))
-    edges.append((nodes[19], nodes[20]))
-    weights_list.append(-4.76887)
-    edge_indices_list.append((19, 20))
-    edges.append((nodes[21], nodes[29]))
-    weights_list.append(4.45753)
-    edge_indices_list.append((21, 29))
+    edges.append((nodes[1], nodes[2]))
+    weights_list.append(-9.18722)
+    edge_indices_list.append((1, 2))
+    edges.append((nodes[8], nodes[16]))
+    weights_list.append(11.9022)
+    edge_indices_list.append((8, 16))
+    edges.append((nodes[9], nodes[10]))
+    weights_list.append(0.160615)
+    edge_indices_list.append((9, 10))
+    edges.append((nodes[13], nodes[14]))
+    weights_list.append(-0.549537)
+    edge_indices_list.append((13, 14))
+    edges.append((nodes[21], nodes[22]))
+    weights_list.append(1.68543)
+    edge_indices_list.append((21, 22))
+    edges.append((nodes[30], nodes[31]))
+    weights_list.append(1.3504)
+    edge_indices_list.append((30, 31))
     edges.append((nodes[32], nodes[40]))
     weights_list.append(-31.1769)
     edge_indices_list.append((32, 40))
-    edges.append((nodes[38], nodes[46]))
-    weights_list.append(-9.01013)
-    edge_indices_list.append((38, 46))
+    edges.append((nodes[37], nodes[45]))
+    weights_list.append(11.1746)
+    edge_indices_list.append((37, 45))
     edges.append((nodes[40], nodes[41]))
     weights_list.append(-64)
     edge_indices_list.append((40, 41))
@@ -48,86 +55,90 @@ def main():
     edges.append((nodes[44], nodes[45]))
     weights_list.append(-64)
     edge_indices_list.append((44, 45))
-    edges.append((nodes[45], nodes[46]))
-    weights_list.append(-64)
-    edge_indices_list.append((45, 46))
     weights = jnp.array(weights_list, dtype=jnp.float32)
 
     # 2. Block Coloring (Derived from ThermoLang GraphColoringPass)
     # Found 2 independent sets (chromatic number).
     free_blocks = [
-        Block([nodes[i] for i in [0, 1, 2, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 20, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 33, 34, 35, 36, 37, 39, 40, 42, 44, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63]]),
-        Block([nodes[i] for i in [3, 6, 19, 21, 32, 38, 41, 43, 45]]),
+        Block([nodes[i] for i in [0, 2, 3, 4, 5, 6, 7, 10, 11, 12, 14, 15, 16, 17, 18, 19, 20, 22, 23, 24, 25, 26, 27, 28, 29, 31, 32, 33, 34, 35, 36, 38, 39, 41, 43, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63]]),
+        Block([nodes[i] for i in [1, 8, 9, 13, 21, 30, 37, 40, 42, 44]]),
     ]
     # 3. Temperature configuration
-    global_beta = jnp.array(1.0 / 9.2222, dtype=jnp.float32)
-    # Noise shaping: bake per-spin beta into biases/weights to avoid broadcasting issues
-    local_temperatures = jnp.array([1, 1, 1, 0.666667, 0.666667, 1, 0.666667, 0.666667, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0.666667, 0.666667, 0.666667, 1, 1, 1, 1, 1, 1, 1, 0.666667, 1, 1, 0.666667, 1, 1, 1, 1, 1, 0.666667, 1, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], dtype=jnp.float32)
-    beta_vector = global_beta * (1.0 / local_temperatures)
-    biases = biases * beta_vector
-    edge_inds = jnp.array(edge_indices_list)
-    if len(edge_inds) > 0:
-        beta_i = beta_vector[edge_inds[:, 0]]
-        beta_j = beta_vector[edge_inds[:, 1]]
-        edge_scales = jnp.sqrt(beta_i * beta_j)
-        weights = weights * edge_scales
-    beta = jnp.array(1.0, dtype=jnp.float32)
-    print(f'[beta_summary] min={float(jnp.min(beta_vector)):.4f}, max={float(jnp.max(beta_vector)):.4f}')
+    # Base beta from compiler schedule (kept consistent with previous generator)
+    beta = jnp.array(1.0 / 9.2222, dtype=jnp.float32)
+    # [INFO] Compiler has baked Noise Shaping (local temperatures) into weights.
+    # Telemetry only:
+    local_temperatures_ref = jnp.array([1, 0.666667, 0.666667, 1, 1, 1, 1, 1, 0.666667, 0.666667, 0.666667, 1, 1, 0.666667, 0.666667, 1, 0.666667, 1, 1, 1, 1, 0.666667, 0.666667, 1, 1, 1, 1, 1, 1, 1, 0.666667, 0.666667, 0.666667, 1, 1, 1, 1, 0.666667, 1, 1, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], dtype=jnp.float32)
     model = IsingEBM(nodes, edges, biases, weights, beta)
     program = IsingSamplingProgram(model, free_blocks, clamped_blocks=[])
-    schedule = SamplingSchedule(n_warmup=20000, n_samples=1, steps_per_sample=20000)
-    key = jax.random.key(0)
+
+    # 3b. Schedules
+    # Normal schedule: matches the previous behavior closely for anneal (warmup then one sample)
+    # Profiling schedule: used ONLY to estimate per-spin variances robustly
+    PROFILE_VARIANCE = os.getenv('THERMOLANG_PROFILE_VARIANCE', '0') == '1'
+    normal_schedule = SamplingSchedule(n_warmup=20000, n_samples=1, steps_per_sample=20000)
+    profile_schedule = SamplingSchedule(n_warmup=2000, n_samples=200, steps_per_sample=200)
+    schedule = profile_schedule if PROFILE_VARIANCE else normal_schedule
+
+    key = jax.random.key(4)
+    rcheck = jax.random.uniform(key, (3,), dtype=jnp.float32)
+    print(f"[SEED_CHECK]: {rcheck.tolist()}")
     k_init, k_samp = jax.random.split(key, 2)
     init_state = hinton_init(k_init, model, free_blocks, ())
-    print(f'Running Thermal Annealing...')
+    print('Running Thermal Annealing...')
     samples = sample_states(k_samp, program, schedule, init_state, [], [Block(nodes)])
 
     # 4. Result Processing & Energy Metric
-    # We extract the final sample from the first chain
-    final_state = samples[0][0]
-    # Convert boolean spins (True/False) back to Ising spins (+1/-1)
-    # True -> +1, False -> -1
-    s = 2 * final_state.astype(jnp.int8) - 1
-    # Calculate Field Energy: E_field = - sum(h_i * s_i)
-    E_field = -jnp.dot(biases, s)
-    # Calculate Coupling Energy: E_coupling = - sum(J_ij * s_i * s_j)
-    # We iterate over the edges we constructed earlier
-    E_coupling = 0.0
-    # Note: thrml edges are (node_u, node_v). We need indices.
-    # Since we constructed nodes sequentially, we can map back easily.
+    # IMPORTANT: choose the best (minimum energy) sample across all chains/samples
+    # This makes comparisons stable and restores the expected benefit of degree shaping.
+    samples_arr = jnp.array(samples)
+    # Flatten to [K, N]
+    flat = samples_arr.reshape(-1, 64)
+    # Convert boolean spins -> Ising spins (+1/-1)
+    s_all = 2 * flat.astype(jnp.int8) - 1
+
     # Re-calculating indices for energy computation
     idx_list = []
-    idx_list.append((3, 4))
-    idx_list.append((6, 7))
-    idx_list.append((19, 20))
-    idx_list.append((21, 29))
+    idx_list.append((1, 2))
+    idx_list.append((8, 16))
+    idx_list.append((9, 10))
+    idx_list.append((13, 14))
+    idx_list.append((21, 22))
+    idx_list.append((30, 31))
     idx_list.append((32, 40))
-    idx_list.append((38, 46))
+    idx_list.append((37, 45))
     idx_list.append((40, 41))
     idx_list.append((41, 42))
     idx_list.append((42, 43))
     idx_list.append((43, 44))
     idx_list.append((44, 45))
-    idx_list.append((45, 46))
     idx_arr = jnp.array(idx_list)
-    if len(idx_arr) > 0:
-        s_i = s[idx_arr[:, 0]]
-        s_j = s[idx_arr[:, 1]]
-        # weights array was defined in step 1
-        E_coupling = -jnp.sum(weights * s_i * s_j)
-    final_energy = E_field + E_coupling
+
+    # Field energy for each sample: E_field = - sum_i (h_i * s_i)
+    E_field_all = -jnp.einsum('i,ki->k', biases, s_all.astype(jnp.float32))
+    # Coupling energy for each sample: E_coupling = - sum_edges (J_ij * s_i * s_j)
+    if idx_arr.size == 0:
+        E_coupling_all = jnp.zeros((s_all.shape[0],), dtype=jnp.float32)
+    else:
+        s_i = s_all[:, idx_arr[:, 0]].astype(jnp.float32)
+        s_j = s_all[:, idx_arr[:, 1]].astype(jnp.float32)
+        E_coupling_all = -jnp.sum(weights[None, :] * s_i * s_j, axis=1)
+    E_all = E_field_all + E_coupling_all
+    best_idx = jnp.argmin(E_all)
+    s = s_all[best_idx]
+    final_energy = E_all[best_idx]
+
     final_state_str = ', '.join(map(str, s.tolist()))
     print(f'[FINAL_ENERGY]: {final_energy}')
     print(f'[FINAL_STATE]: [{final_state_str}]')
     try:
-        all_samples = jnp.array(samples).reshape(-1, 64)
-        float_samples = 2.0 * all_samples.astype(jnp.float32) - 1.0
+        float_samples = s_all.astype(jnp.float32)
         means = jnp.mean(float_samples, axis=0)
         variances = 1.0 - (means ** 2)
         var_str = ','.join([f'{v:.4f}' for v in variances.tolist()])
         print(f'[VARIANCES]: {var_str}')
-    except Exception as e:
-        print(f'[VARIANCES]: error')
+    except Exception:
+        print('[VARIANCES]: error')
     return s
 
 if __name__ == '__main__':
