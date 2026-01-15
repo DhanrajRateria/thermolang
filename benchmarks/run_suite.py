@@ -4,10 +4,20 @@ import numpy as np
 import pandas as pd
 
 COMPILER = "./build/thermolangc"
-MODES = ["off", "degree", "degree+variance"]  # we handle variance separately as variance_profiled
 
-# Paper-friendly sweep (set to [0.0,0.25,0.5,0.75,1.0] later)
-STRENGTHS = [1.0]
+BASE_MODES = ["off", "degree", "degree+variance"]   # normal runs
+STRENGTHS = [1.0]                                  # expand later if needed
+
+VAR_DIR = "results/variances"
+PROFILE_SEEDS = 10
+PROFILE_MODE = "off"          # profiling dynamics: "off" recommended
+PROFILE_AGG = "mean"          # "mean" or "median"
+
+# Variance shaping behavior for variance_profiled compile
+VAR_POLICY = "cool"           # "cool" recommended (high variance -> cooler)
+VAR_RENORM = "1"              # keep mean beta unchanged
+VAR_CAP = "0.10"              # start small; tune later
+
 
 def parse_final_state(stdout: str):
     m_state = re.search(r"\[FINAL_STATE\]:\s*\[(.*?)\]", stdout)
@@ -19,26 +29,12 @@ def parse_internal_energy(stdout: str):
     m_e = re.search(r"\[FINAL_ENERGY\]:\s*([-\d\.eE]+)", stdout)
     return float(m_e.group(1)) if m_e else None
 
-def parse_variances(stdout: str):
-    m = re.search(r"\[VARIANCES\]:\s*(.*)", stdout)
-    if not m:
-        return None
-    s = m.group(1).strip()
-    if s == "error":
-        return None
-    parts = [p.strip() for p in s.split(",") if p.strip() != ""]
-    try:
-        return [float(x) for x in parts]
-    except:
-        return None
-
 def parse_seed_check(stdout: str):
     m = re.search(r"\[SEED_CHECK\]:\s*\[(.*?)\]", stdout)
     return m.group(1).strip() if m else None
 
 def calc_true_energy(spins, J, h):
     s = np.array(spins[:len(h)], dtype=np.float32)
-    # Safety if ever 0/1 slips in
     if np.all((s == 0) | (s == 1)):
         s = 2.0 * s - 1.0
     return float(-0.5 * s.T @ J @ s - h.T @ s)
@@ -46,8 +42,11 @@ def calc_true_energy(spins, J, h):
 def compile_to_thrml(thermo_file: str, mode: str, strength: float = 1.0, extra_env=None):
     env = os.environ.copy()
     env["NOISE_SHAPING_MODE"] = mode
-    env["NOISE_SHAPING_VARIANCE_SHRINK"] = env.get("NOISE_SHAPING_VARIANCE_SHRINK", "0.5")
     env["NOISE_SHAPING_STRENGTH"] = str(strength)
+
+    # default (can be overridden)
+    env.setdefault("NOISE_SHAPING_VARIANCE_SHRINK", "0.5")
+
     if extra_env:
         env.update(extra_env)
 
@@ -69,8 +68,51 @@ def run_thrml(py_file: str, extra_env=None):
     res = subprocess.run(["python3", py_file], capture_output=True, text=True, env=env)
     return res.stdout
 
-def main(seeds=10):
-    # 1) Generate benchmarks
+def ensure_variance_file(tf: str):
+    """
+    Ensure results/variances/{problem}.csv exists.
+    If missing, run benchmarks/collect_variance.py to generate it.
+    """
+    base = os.path.splitext(os.path.basename(tf))[0]
+    out_csv = os.path.join(VAR_DIR, f"{base}.csv")
+    if os.path.exists(out_csv):
+        return out_csv
+
+    os.makedirs(VAR_DIR, exist_ok=True)
+    print(f"[INFO] Variance file missing for {base}. Generating profile -> {out_csv}")
+
+    subprocess.run(
+        [
+            "python3", "benchmarks/collect_variance.py",
+            "--thermo", tf,
+            "--seeds", str(PROFILE_SEEDS),
+            "--mode", PROFILE_MODE,
+            "--aggregate", PROFILE_AGG,
+            "--outdir", VAR_DIR
+        ],
+        check=True
+    )
+    if not os.path.exists(out_csv):
+        raise RuntimeError(f"Variance collector did not produce {out_csv}")
+    return out_csv
+
+def load_variance_string(csv_path: str, n_inject: int):
+    """
+    Read first line of CSV (comma-separated floats), trim to n_inject.
+    This is KEY: we inject ONLY logical spins (len(h_true)), not ancillas.
+    """
+    with open(csv_path, "r") as f:
+        line = f.readline().strip()
+    parts = [p.strip() for p in line.split(",") if p.strip() != ""]
+    vals = [float(x) for x in parts]
+
+    if len(vals) < n_inject:
+        raise RuntimeError(f"Variance file too short: {csv_path}, got={len(vals)}, need={n_inject}")
+
+    vals = vals[:n_inject]
+    return ",".join(f"{x:.6f}" for x in vals)
+
+def main(seeds=10, only_problem=None):
     subprocess.run(["python3", "benchmarks/generate_suite.py"], check=True)
 
     thermo_files = sorted([
@@ -81,83 +123,18 @@ def main(seeds=10):
     rows = []
     for tf in thermo_files:
         base = os.path.splitext(os.path.basename(tf))[0]
+        if only_problem and base != only_problem:
+            continue
+
         npz_path = tf.replace(".thermo", ".npz")
         data = np.load(npz_path)
         J_true, h_true = data["J"], data["h"]
-
         py_file = f"{base}_thrml.py"
 
-        # ---- A) OFF baseline energy runs (normal schedule) ----
-        for seed in range(seeds):
-            compile_to_thrml(tf, "off", strength=1.0)
-            patch_seed(py_file, seed)
-            out_off = run_thrml(py_file, extra_env={"THERMOLANG_PROFILE_VARIANCE": "0"})
-
-            spins = parse_final_state(out_off)
-            if spins is None:
-                rows.append({"problem": base, "mode": "off", "strength": 1.0, "seed": seed, "status": "parse_fail"})
-                continue
-
-            internal_e = parse_internal_energy(out_off)
-            true_e = calc_true_energy(spins, J_true, h_true)
-            seed_check = parse_seed_check(out_off)
-
-            rows.append({
-                "problem": base, "mode": "off", "strength": 1.0, "seed": seed,
-                "true_energy": true_e, "internal_energy": internal_e,
-                "seed_check": seed_check, "status": "ok"
-            })
-            print(f"[OK] {base:22s} mode=off               seed={seed:2d} trueE={true_e:.4f}")
-
-        # ---- B) Variance profiling runs: OFF + profiling schedule ----
-        # We use OFF so variances reflect the unshaped model dynamics.
-        variances_by_seed = {}
-        for seed in range(seeds):
-            compile_to_thrml(tf, "off", strength=1.0)
-            patch_seed(py_file, seed)
-            out_prof = run_thrml(py_file, extra_env={"THERMOLANG_PROFILE_VARIANCE": "1"})
-
-            v = parse_variances(out_prof)
-            seed_check = parse_seed_check(out_prof)
-
-            if v is None or len(v) < len(h_true):
-                print(f"[WARN] {base:22s} variance profile missing/short for seed={seed}, got={None if v is None else len(v)}")
-                variances_by_seed[seed] = None
-                continue
-
-            variances_by_seed[seed] = v[:len(h_true)]
-            print(f"[OK] {base:22s} variance_profiled seed={seed:2d} seed_check=[{seed_check}]")
-
-        # ---- C) Variance-shaped runs: compile with injected variances ----
-        for seed in range(seeds):
-            v = variances_by_seed.get(seed)
-            if v is None:
-                rows.append({"problem": base, "mode": "variance_profiled", "strength": 1.0, "seed": seed, "status": "no_variances"})
-                continue
-
-            var_str = ",".join(f"{x:.6f}" for x in v)
-            compile_to_thrml(tf, "variance", strength=1.0, extra_env={"NOISE_SHAPING_VARIANCES": var_str})
-            patch_seed(py_file, seed)
-            out_var = run_thrml(py_file, extra_env={"THERMOLANG_PROFILE_VARIANCE": "0"})
-
-            spins = parse_final_state(out_var)
-            if spins is None:
-                rows.append({"problem": base, "mode": "variance_profiled", "strength": 1.0, "seed": seed, "status": "parse_fail"})
-                continue
-
-            internal_e = parse_internal_energy(out_var)
-            true_e = calc_true_energy(spins, J_true, h_true)
-            seed_check = parse_seed_check(out_var)
-
-            rows.append({
-                "problem": base, "mode": "variance_profiled", "strength": 1.0, "seed": seed,
-                "true_energy": true_e, "internal_energy": internal_e,
-                "seed_check": seed_check, "status": "ok"
-            })
-            print(f"[OK] {base:22s} mode=variance_profiled seed={seed:2d} trueE={true_e:.4f}")
-
-        # ---- D) Degree / Degree+Variance strength sweeps (optional, paper-friendly) ----
-        for mode in ["degree", "degree+variance"]:
+        # -------------------------
+        # 1) Normal mode runs
+        # -------------------------
+        for mode in BASE_MODES:
             for strength in STRENGTHS:
                 for seed in range(seeds):
                     compile_to_thrml(tf, mode, strength=strength)
@@ -180,6 +157,42 @@ def main(seeds=10):
                     })
                     print(f"[OK] {base:22s} mode={mode:18s} λ={strength:4.2f} seed={seed:2d} trueE={true_e:.4f}")
 
+        # -------------------------
+        # 2) Variance-profiled runs (2-phase)
+        # -------------------------
+        var_csv = ensure_variance_file(tf)
+
+        # Inject only logical spins (len(h_true)), NOT ancillas
+        var_str = load_variance_string(var_csv, n_inject=len(h_true))
+
+        var_env = {
+            "NOISE_SHAPING_VARIANCES": var_str,
+            "NOISE_SHAPING_VARIANCE_SHRINK": VAR_CAP,            # cap for policy
+            "NOISE_SHAPING_VARIANCE_POLICY": VAR_POLICY,         # cool vs warm
+            "NOISE_SHAPING_VARIANCE_RENORM": VAR_RENORM,         # keep mean beta stable
+        }
+
+        for seed in range(seeds):
+            compile_to_thrml(tf, "variance", strength=1.0, extra_env=var_env)
+            patch_seed(py_file, seed)
+            out = run_thrml(py_file, extra_env={"THERMOLANG_PROFILE_VARIANCE": "0"})
+
+            spins = parse_final_state(out)
+            if spins is None:
+                rows.append({"problem": base, "mode": "variance_profiled", "strength": 1.0, "seed": seed, "status": "parse_fail"})
+                continue
+
+            internal_e = parse_internal_energy(out)
+            true_e = calc_true_energy(spins, J_true, h_true)
+            seed_check = parse_seed_check(out)
+
+            rows.append({
+                "problem": base, "mode": "variance_profiled", "strength": 1.0, "seed": seed,
+                "true_energy": true_e, "internal_energy": internal_e,
+                "seed_check": seed_check, "status": "ok"
+            })
+            print(f"[OK] {base:22s} mode=variance_profiled  seed={seed:2d} trueE={true_e:.4f}")
+
     df = pd.DataFrame(rows)
     os.makedirs("results", exist_ok=True)
     df.to_csv("results/suite_raw.csv", index=False)
@@ -196,9 +209,12 @@ def main(seeds=10):
     print("Saved: results/suite_summary.csv")
     print(summary)
 
+
 if __name__ == "__main__":
-    import sys
-    seeds = 10
-    if len(sys.argv) == 2:
-        seeds = int(sys.argv[1])
-    main(seeds=seeds)
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--seeds", type=int, default=10)
+    ap.add_argument("--only", type=str, default=None,
+                    help="Run only this benchmark (basename without extensions)")
+    args = ap.parse_args()
+    main(seeds=args.seeds, only_problem=args.only)
