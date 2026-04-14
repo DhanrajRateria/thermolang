@@ -6,7 +6,7 @@ import pandas as pd
 COMPILER = "./build/thermolangc"
 
 BASE_MODES = ["off", "degree", "degree+variance"]   # normal runs
-STRENGTHS = [1.0]                                  # expand later if needed
+STRENGTHS = [float(x) for x in os.getenv("SUITE_STRENGTHS", "1.0").split(",")]                                  # expand later if needed
 
 VAR_DIR = "results/variances"
 PROFILE_SEEDS = 10
@@ -14,9 +14,9 @@ PROFILE_MODE = "off"          # profiling dynamics: "off" recommended
 PROFILE_AGG = "mean"          # "mean" or "median"
 
 # Variance shaping behavior for variance_profiled compile
-VAR_POLICY = "cool"           # "cool" recommended (high variance -> cooler)
-VAR_RENORM = "1"              # keep mean beta unchanged
-VAR_CAP = "0.10"              # start small; tune later
+VAR_POLICY = os.getenv("NOISE_SHAPING_VARIANCE_POLICY", "cool")
+VAR_RENORM = os.getenv("NOISE_SHAPING_VARIANCE_RENORM", "1")
+VAR_CAP    = os.getenv("NOISE_SHAPING_VARIANCE_SHRINK", "0.10")
 
 
 def parse_final_state(stdout: str):
@@ -171,31 +171,35 @@ def main(seeds=10, only_problem=None):
             "NOISE_SHAPING_VARIANCE_POLICY": VAR_POLICY,         # cool vs warm
             "NOISE_SHAPING_VARIANCE_RENORM": VAR_RENORM,         # keep mean beta stable
         }
+        for strength in STRENGTHS:
+            for seed in range(seeds):
+                for compile_mode, label in [
+                    ("variance", "variance_profiled"),
+                    ("degree+variance", "degree+variance_profiled"),
+                ]:
+                    compile_to_thrml(tf, compile_mode, strength=1.0, extra_env=var_env)
+                    patch_seed(py_file, seed)
+                    out = run_thrml(py_file, extra_env={"THERMOLANG_PROFILE_VARIANCE": "0"})
 
-        for seed in range(seeds):
-            compile_to_thrml(tf, "variance", strength=1.0, extra_env=var_env)
-            patch_seed(py_file, seed)
-            out = run_thrml(py_file, extra_env={"THERMOLANG_PROFILE_VARIANCE": "0"})
+                    spins = parse_final_state(out)
+                    if spins is None:
+                        rows.append({"problem": base, "mode": label, "strength": 1.0, "seed": seed, "status": "parse_fail"})
+                        continue
 
-            spins = parse_final_state(out)
-            if spins is None:
-                rows.append({"problem": base, "mode": "variance_profiled", "strength": 1.0, "seed": seed, "status": "parse_fail"})
-                continue
+                    internal_e = parse_internal_energy(out)
+                    true_e = calc_true_energy(spins, J_true, h_true)
+                    seed_check = parse_seed_check(out)
 
-            internal_e = parse_internal_energy(out)
-            true_e = calc_true_energy(spins, J_true, h_true)
-            seed_check = parse_seed_check(out)
-
-            rows.append({
-                "problem": base, "mode": "variance_profiled", "strength": 1.0, "seed": seed,
-                "true_energy": true_e, "internal_energy": internal_e,
-                "seed_check": seed_check, "status": "ok"
-            })
-            print(f"[OK] {base:22s} mode=variance_profiled  seed={seed:2d} trueE={true_e:.4f}")
+                    rows.append({
+                        "problem": base, "mode": label, "strength": 1.0, "seed": seed,
+                        "true_energy": true_e, "internal_energy": internal_e,
+                        "seed_check": seed_check, "status": "ok"
+                    })
+                    print(f"[OK] {base:22s} mode={label:18s} seed={seed:2d} trueE={true_e:.4f}")
 
     df = pd.DataFrame(rows)
     os.makedirs("results", exist_ok=True)
-    df.to_csv("results/suite_raw.csv", index=False)
+    
     print("\nSaved: results/suite_raw.csv")
 
     ok = df[df["status"] == "ok"].copy()
@@ -205,7 +209,12 @@ def main(seeds=10, only_problem=None):
                       true_min=("true_energy", "min"),
                       internal_mean=("internal_energy", "mean"))
                  .reset_index())
-    summary.to_csv("results/suite_summary.csv", index=False)
+    OUT_CSV = os.getenv("SUITE_OUT_CSV", "results/suite_raw.csv")
+    OUT_SUM = os.getenv("SUITE_OUT_SUMMARY", "results/suite_summary.csv")
+    df.to_csv(OUT_CSV, index=False)
+    summary.to_csv(OUT_SUM, index=False)
+    print(f"\nSaved: {OUT_CSV}")
+    print(f"Saved: {OUT_SUM}")
     print("Saved: results/suite_summary.csv")
     print(summary)
 
