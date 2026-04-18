@@ -25,8 +25,9 @@ TEST_F(EndToEndTest, CompilesAndRunsIsingSolver)
     int compile_result = run_command(compile_command);
     ASSERT_EQ(compile_result, 0) << "Compiler failed to execute. Command was: " << compile_command;
 
-    std::ifstream f("program_sim.py");
-    ASSERT_TRUE(f.good()) << "Compiler did not generate program_sim.py";
+    std::string generated_py = "3_ising_solver_sim.py";
+    std::ifstream f(generated_py);
+    ASSERT_TRUE(f.good()) << "Compiler did not generate " << generated_py;
 
     // Read and fix the Python file
     std::string content;
@@ -38,7 +39,7 @@ TEST_F(EndToEndTest, CompilesAndRunsIsingSolver)
     f.close();
 
     // Clear the file and write a modified version with proper main execution
-    std::ofstream outf("program_sim.py");
+    std::ofstream outf(generated_py);
     outf << content;
     outf << "\n# Explicit main execution added by test\n";
     outf << "if __name__ == '__main__':\n";
@@ -51,11 +52,11 @@ TEST_F(EndToEndTest, CompilesAndRunsIsingSolver)
     outf.close();
 
     // Run the Python script and check for its execution
-    run_command("python program_sim.py > sim_output.txt 2>&1");
+    run_command(("python " + generated_py + " > sim_output.txt 2>&1").c_str());
 
     // Print the content of the Python file for debugging
     std::cout << "\nPython file content:" << std::endl;
-    run_command("cat program_sim.py");
+    run_command(("cat " + generated_py).c_str());
 
     // Print the output for debugging
     std::cout << "\nPython output:" << std::endl;

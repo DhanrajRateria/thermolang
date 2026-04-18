@@ -76,7 +76,10 @@ void run(const std::string &source, const std::string &target, bool enable_optim
         opt_manager.add_pass(std::make_unique<thermolang::optimizer::DiscreteEBMAnalysisPass>());
         opt_manager.add_pass(std::make_unique<thermolang::optimizer::GraphColoringPass>());
         opt_manager.add_pass(std::make_unique<thermolang::optimizer::EnergyFunctionPass>());
-        opt_manager.add_pass(std::make_unique<thermolang::optimizer::CircuitTopologyPass>());
+        if (target == "fpga")
+        {
+            opt_manager.add_pass(std::make_unique<thermolang::optimizer::CircuitTopologyPass>());
+        }
         opt_manager.add_pass(std::make_unique<thermolang::optimizer::VarianceTrackingPass>());
         // Apply variable-temperature shaping after variance tracking and before scheduling
         opt_manager.add_pass(std::make_unique<thermolang::optimizer::NoiseShapingPass>());

@@ -1,51 +1,41 @@
 `timescale 1ns / 1ps
+`default_nettype none
 
-module tb_trng();
+module tb_trng;
 
-    // Inputs to our box (Registers because we change them)
     reg clk;
     reg rst;
+    wire [15:0] rand_out;
 
-    // Outputs from our box (Wires because we just watch them)
-    wire random_bit;
-
-    // Plug in the TRNG module (Unit Under Test - UUT)
     trng uut (
         .clk(clk),
         .rst(rst),
-        .random_bit(random_bit)
+        .rand_out(rand_out)
     );
 
-    // 1. Create a Clock
-    // Toggle clk every 5 nanoseconds (100 MHz speed)
     initial begin
-        clk = 0;
+        clk = 1'b0;
         forever #5 clk = ~clk;
     end
 
-    // 2. Run the Scenario
     initial begin
-        // Setup file for viewing in GTKWave
         $dumpfile("trng_waves.vcd");
         $dumpvars(0, tb_trng);
 
-        // Start with Reset ON
-        rst = 1;
-        #20; // Wait 20 nanoseconds
+        rst = 1'b1;
+        #20;
+        rst = 1'b0;
 
-        // Release Reset (Let the oscillators run!)
-        rst = 0;
-        
-        // Let it run for 1000 nanoseconds
-        #1000;
-
-        // Stop simulation
+        #2000;
         $finish;
     end
 
-    // 3. Print results to console
     always @(posedge clk) begin
-        if (!rst) $display("Time: %t | Random Bit: %b", $time, random_bit);
+        if (!rst) begin
+            $display("Time: %0t | rand_out: %h", $time, rand_out);
+        end
     end
 
 endmodule
+
+`default_nettype wire

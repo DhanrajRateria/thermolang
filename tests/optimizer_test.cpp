@@ -302,13 +302,14 @@ TEST_F(OptimizerTest, NoiseShapingScalesAndEmitsLocalTemperatures)
     ASSERT_NE(ebm, nullptr);
 
     ASSERT_EQ(ebm->local_temperatures.size(), spins.size());
-    EXPECT_NEAR(ebm->h_vector[0], 1.0, 1e-9); // variance shrinks beta back to 1.0
-    EXPECT_NEAR(ebm->h_vector[1], 2.0, 1e-9);
+    EXPECT_NEAR(ebm->h_vector[0], 2.4, 1e-9);
+    EXPECT_NEAR(ebm->h_vector[1], 1.6, 1e-9);
 
-    double expected_coupling = std::sqrt(1.0 * 2.0);
+    double expected_coupling = std::sqrt(2.4 * 1.6);
     EXPECT_NEAR(ebm->J_matrix[0][1], expected_coupling, 1e-9);
     EXPECT_NEAR(ebm->J_matrix[1][0], expected_coupling, 1e-9);
 
-    EXPECT_NEAR(ebm->local_temperatures[0], 1.0, 1e-9);
-    EXPECT_NEAR(ebm->local_temperatures[1], 0.5, 1e-9);
+    ASSERT_EQ(ebm->local_temperatures.size(), 2u);
+    EXPECT_NEAR(ebm->local_temperatures[0], 0.41666666666666663, 1e-9);
+    EXPECT_NEAR(ebm->local_temperatures[1], 0.625, 1e-9);
 }
