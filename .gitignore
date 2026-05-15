@@ -40,6 +40,13 @@ hardware/sim/vivado.log
 hardware/sim/vivado.jou
 hardware/sim/xsim.dir/
 
+out/
+archive/generated_root/
+hardware/sim/*.vvp
+hardware/sim/*.vcd
+hardware/sim/config.mem
+hardware/sim/schedule.txt
+
 # Python Artifacts
 __pycache__/
 *.pyc

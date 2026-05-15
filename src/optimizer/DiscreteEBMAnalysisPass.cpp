@@ -7,6 +7,8 @@
 
 namespace thermolang::optimizer
 {
+
+    ir::Instruction *find_defining_instr(ir::FunctionIR &function_ir, const std::string &reg);
     // Helper to find the instruction that defines a register.
     ir::Instruction *find_defining_instr(ir::FunctionIR &function_ir, const std::string &reg)
     {
@@ -24,11 +26,11 @@ namespace thermolang::optimizer
                     if (load_op->result_reg == reg)
                         return instr.get();
                 }
-                // else if (auto *call_op = dynamic_cast<ir::CallInstr *>(instr.get()))
-                // {
-                //     if (call_op->result_reg.has_value() && *call_op->result_reg == reg)
-                //         return instr.get();
-                // }
+                else if (auto *call_op = dynamic_cast<ir::CallInstr *>(instr.get()))
+                {
+                    if (call_op->result_reg.has_value() && *call_op->result_reg == reg)
+                        return instr.get();
+                }
             }
         }
         return nullptr;
@@ -80,6 +82,7 @@ namespace thermolang::optimizer
         return std::nullopt;
     }
 
+    // Extract the discrete EBM structure, rewrite the function, and keep the logging compact.
     bool DiscreteEBMAnalysisPass::run(ir::FunctionIR &function_ir)
     {
         bool is_inverted = false;
@@ -240,6 +243,58 @@ namespace thermolang::optimizer
             }
         };
 
+        std::function<void(const ir::Operand &, const ir::Operand &)> extract_product_terms;
+        extract_product_terms = [&](const ir::Operand &a, const ir::Operand &b)
+        {
+            // Distribute multiplication over addition before flattening monomials.
+            auto get_add_instr = [&](const ir::Operand &op) -> ir::BinaryOpInstr *
+            {
+                if (!std::holds_alternative<std::string>(op))
+                    return nullptr;
+
+                auto *def = find_defining_instr(function_ir, std::get<std::string>(op));
+                auto *bin = dynamic_cast<ir::BinaryOpInstr *>(def);
+                if (bin && bin->opcode == ir::OpCode::ADD)
+                    return bin;
+                return nullptr;
+            };
+
+            if (auto *add_a = get_add_instr(a))
+            {
+                extract_product_terms(add_a->arg1, b);
+                extract_product_terms(add_a->arg2, b);
+                return;
+            }
+
+            if (auto *add_b = get_add_instr(b))
+            {
+                extract_product_terms(a, add_b->arg1);
+                extract_product_terms(a, add_b->arg2);
+                return;
+            }
+
+            double coeff = 1.0;
+            std::vector<int> spins;
+            flatten_mul(a, coeff, spins);
+            flatten_mul(b, coeff, spins);
+
+            if (spins.size() == 1)
+            {
+                h[spins[0]] += coeff;
+            }
+            else if (spins.size() == 2)
+            {
+                int i = spins[0];
+                int j = spins[1];
+                if (i != j)
+                {
+                    J[i][j] += coeff;
+                    J[j][i] += coeff;
+                }
+            }
+        };
+
+        // Walk additive structure first; each product term is expanded separately.
         std::function<void(const ir::Operand &)> extract_terms_flat;
         extract_terms_flat = [&](const ir::Operand &op)
         {
@@ -250,6 +305,18 @@ namespace thermolang::optimizer
             }
 
             ir::Instruction *def = reg.empty() ? nullptr : find_defining_instr(function_ir, reg);
+
+            if (def)
+            {
+                if (auto *bin = dynamic_cast<ir::BinaryOpInstr *>(def))
+                {
+                    if (bin->opcode == ir::OpCode::MUL)
+                    {
+                        extract_product_terms(bin->arg1, bin->arg2);
+                        return;
+                    }
+                }
+            }
 
             if (def)
             {
@@ -289,11 +356,24 @@ namespace thermolang::optimizer
 
         std::cout << "  Detected Discrete EBM pattern. J Matrix size: " << n_spins << "x" << n_spins << std::endl;
 
+        int nonzero_h = 0;
+        int nonzero_J = 0;
+
+        for (int i = 0; i < n_spins; ++i)
+        {
+            if (std::abs(h[i]) > 1e-9)
+                nonzero_h++;
+            for (int j = 0; j < n_spins; ++j)
+            {
+                if (std::abs(J[i][j]) > 1e-9)
+                    nonzero_J++;
+            }
+        }
+
         // 5. Polarity Correction
         // If E_user = sum (s * s), we need Hardware H = - sum (-1 * s * s)
         if (!is_inverted)
         {
-            std::cout << "  (Implicit positive energy detected. Inverting weights for hardware Hamiltonian.)" << std::endl;
             for (auto &row : J)
                 for (double &val : row)
                     val = -val;
@@ -314,6 +394,12 @@ namespace thermolang::optimizer
         // Add the new high-level instruction, followed by the saved return instruction.
         final_block->instructions.push_back(std::move(ebm_instr));
         final_block->instructions.push_back(std::move(return_instr_ptr));
+
+        std::cout << "  [DEBM] nonzero_J=" << nonzero_J
+                  << " nonzero_h=" << nonzero_h
+                  << " colored_blocks=" << 1
+                  << " nonzero_words=" << (nonzero_J + nonzero_h)
+                  << std::endl;
 
         return true; // The IR was successfully modified.
     }

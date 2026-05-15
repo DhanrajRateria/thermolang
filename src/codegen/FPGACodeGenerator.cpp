@@ -3,6 +3,7 @@
 #include <iomanip>
 #include <cmath>
 #include <stdexcept>
+#include <iostream>
 
 namespace thermolang::codegen
 {
@@ -102,9 +103,37 @@ namespace thermolang::codegen
         int num_spins = ebm_instr->spins.size();
         int grid_size = static_cast<int>(sqrt(num_spins));
 
+        std::cout << "[FPGA DEBUG] num_spins = " << num_spins << "\n";
+        std::cout << "[FPGA DEBUG] grid_size = " << grid_size << "\n";
+        std::cout << "[FPGA DEBUG] h.size() = " << h.size() << "\n";
+        std::cout << "[FPGA DEBUG] J.size() = " << J.size() << "\n";
+
+        if (!h.empty())
+        {
+            std::cout << "[FPGA DEBUG] first 8 h values:\n";
+            for (size_t k = 0; k < std::min<size_t>(8, h.size()); ++k)
+            {
+                std::cout << "  h[" << k << "] = " << h[k] << "\n";
+            }
+        }
+
+        if (!J.empty())
+        {
+            std::cout << "[FPGA DEBUG] first 4x4 block of J:\n";
+            for (size_t r = 0; r < std::min<size_t>(4, J.size()); ++r)
+            {
+                for (size_t c = 0; c < std::min<size_t>(4, J[r].size()); ++c)
+                {
+                    std::cout << J[r][c] << " ";
+                }
+                std::cout << "\n";
+            }
+        }
+
         // mem_file << "// ThermoLang Generated Problem Configuration for a " << grid_size << "x" << grid_size << " grid\n";
         // mem_file << "// Format: For each spin (row-major): h, J_north, J_south, J_east, J_west\n";
 
+        int nonzero_words = 0;
         for (int r = 0; r < grid_size; ++r)
         {
             for (int c = 0; c < grid_size; ++c)
@@ -117,14 +146,32 @@ namespace thermolang::codegen
                 int east = r * grid_size + ((c == grid_size - 1) ? 0 : c + 1);
                 int west = r * grid_size + ((c == 0) ? grid_size - 1 : c - 1);
 
+                int16_t h_fp = double_to_fixed_point(h[i], FRAC_BITS);
+                int16_t jn_fp = double_to_fixed_point(J[i][north], FRAC_BITS);
+                int16_t js_fp = double_to_fixed_point(J[i][south], FRAC_BITS);
+                int16_t je_fp = double_to_fixed_point(J[i][east], FRAC_BITS);
+                int16_t jw_fp = double_to_fixed_point(J[i][west], FRAC_BITS);
+
+                if (h_fp != 0)
+                    nonzero_words++;
+                if (jn_fp != 0)
+                    nonzero_words++;
+                if (js_fp != 0)
+                    nonzero_words++;
+                if (je_fp != 0)
+                    nonzero_words++;
+                if (jw_fp != 0)
+                    nonzero_words++;
+
                 // Convert to fixed-point and write to file in hex format
-                mem_file << std::hex << std::setw(4) << std::setfill('0') << (uint16_t)double_to_fixed_point(h[i], FRAC_BITS) << "\n";
-                mem_file << std::hex << std::setw(4) << std::setfill('0') << (uint16_t)double_to_fixed_point(J[i][north], FRAC_BITS) << "\n";
-                mem_file << std::hex << std::setw(4) << std::setfill('0') << (uint16_t)double_to_fixed_point(J[i][south], FRAC_BITS) << "\n";
-                mem_file << std::hex << std::setw(4) << std::setfill('0') << (uint16_t)double_to_fixed_point(J[i][east], FRAC_BITS) << "\n";
-                mem_file << std::hex << std::setw(4) << std::setfill('0') << (uint16_t)double_to_fixed_point(J[i][west], FRAC_BITS) << "\n";
+                mem_file << std::hex << std::setw(4) << std::setfill('0') << (uint16_t)h_fp << "\n";
+                mem_file << std::hex << std::setw(4) << std::setfill('0') << (uint16_t)jn_fp << "\n";
+                mem_file << std::hex << std::setw(4) << std::setfill('0') << (uint16_t)js_fp << "\n";
+                mem_file << std::hex << std::setw(4) << std::setfill('0') << (uint16_t)je_fp << "\n";
+                mem_file << std::hex << std::setw(4) << std::setfill('0') << (uint16_t)jw_fp << "\n";
             }
         }
+        std::cout << "[FPGA DEBUG] nonzero_words = " << nonzero_words << "\n";
         mem_file.close();
 
         // --- 3. Generate the Annealing Schedule File (.txt) ---

@@ -1,0 +1,14 @@
+cat examples/checkerboard.thermo
+
+./build/thermolangc examples/checkerboard.thermo --target=fpga
+
+ls -l checkerboard_config.mem checkerboard_schedule.txt
+
+head -40 checkerboard_config.mem
+
+cat checkerboard_schedule.txt
+
+python3 benchmarks/run_digital_twin.py examples/checkerboard.thermo
+
+make twin EXAMPLE=examples/checkerboard.thermo
+

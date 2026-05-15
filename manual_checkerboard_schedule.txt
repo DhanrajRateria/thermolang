@@ -1,0 +1,3 @@
+initial_temp 6.93147
+cooling_rate 0.99
+steps 16000

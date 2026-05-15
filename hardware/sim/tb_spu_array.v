@@ -79,6 +79,10 @@ module tb_spu_array;
     endfunction
 
     initial begin
+
+        $dumpfile("spu_trace.vcd");
+        $dumpvars(0, tb_spu_array);
+        
         clk = 1'b0;
         rst_n = 1'b0;
         phase = 1'b0;
