@@ -6,6 +6,9 @@
 #include <set>
 #include <string>
 #include <vector>
+#include <cstdlib>
+#include <algorithm>
+#include <cctype>
 
 namespace thermolang::optimizer
 {
@@ -50,6 +53,23 @@ namespace thermolang::optimizer
 
     bool CircuitTopologyPass::run(ir::FunctionIR &function_ir)
     {
+        const char *enable_env = std::getenv("THERMOLANG_ENABLE_HW_EMBEDDING");
+        std::string enabled = enable_env ? enable_env : "0";
+
+        std::transform(
+            enabled.begin(),
+            enabled.end(),
+            enabled.begin(),
+            [](unsigned char c)
+            {
+                return static_cast<char>(std::tolower(c));
+            });
+
+        if (!(enabled == "1" || enabled == "true" || enabled == "yes" || enabled == "on"))
+        {
+            return false;
+        }
+        
         bool modified = false;
 
         for (auto &block : function_ir.basic_blocks)
