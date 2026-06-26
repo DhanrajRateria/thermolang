@@ -21,6 +21,7 @@ from final_validation_common import (
     run_cmd,
 )
 from generate_maxcut import generate_maxcut_thermo
+from generated_artifacts import generated_artifact_path
 
 
 def cut_value(spins: list[int] | np.ndarray, edges: list[tuple[int, int]]) -> int:
@@ -196,7 +197,7 @@ def run_single(
         steps=steps,
     )
 
-    metadata = json.loads(source.with_suffix(".json").read_text(encoding="utf-8"))
+    metadata = json.loads(generated_artifact_path(source, ".json").read_text(encoding="utf-8"))
     edges = [tuple(edge) for edge in metadata["edges"]]
 
     rng = np.random.default_rng(seed + 1000)
@@ -261,7 +262,7 @@ def run_single(
     (run_dir / "run_log.txt").write_text(sim_log, encoding="utf-8")
 
     shutil.copy2(source, run_dir / source.name)
-    shutil.copy2(source.with_suffix(".json"), run_dir / source.with_suffix(".json").name)
+    shutil.copy2(generated_artifact_path(source, ".json"), run_dir / source.with_suffix(".json").name)
 
     metrics = {
         "run": name,

@@ -6,6 +6,8 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 
+from generated_artifacts import generated_artifact_path
+
 
 def save_image(arr: np.ndarray, path: Path, title: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -98,12 +100,12 @@ def generate_denoise_thermo(
         f.write(f"    let res = thermal_anneal(denoise_model, 5.0, 0.95, {steps});\n")
         f.write("}\n")
 
-    np.save(str(prefix) + "_target.npy", clean)
-    np.save(str(prefix) + "_noisy.npy", noisy)
-    np.save(str(prefix) + "_noise_mask.npy", noise_mask.astype(np.uint8))
+    np.save(generated_artifact_path(filename, "_target.npy"), clean)
+    np.save(generated_artifact_path(filename, "_noisy.npy"), noisy)
+    np.save(generated_artifact_path(filename, "_noise_mask.npy"), noise_mask.astype(np.uint8))
 
-    save_image(clean, Path(str(prefix) + "_clean.png"), "Clean")
-    save_image(noisy, Path(str(prefix) + "_noisy.png"), "Noisy")
+    save_image(clean, generated_artifact_path(filename, "_clean.png"), "Clean")
+    save_image(noisy, generated_artifact_path(filename, "_noisy.png"), "Noisy")
 
     print(f"Wrote {filename}")
     print(f"Noisy flips: {int(np.sum(clean != noisy))}")

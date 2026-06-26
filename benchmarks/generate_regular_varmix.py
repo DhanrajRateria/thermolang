@@ -1,6 +1,8 @@
 import numpy as np
 import os
 
+from generated_artifacts import generated_artifact_path
+
 def generate_regular_varmix(filename="examples/regular_varmix_40.thermo", n=40, k=6):
     """
     k-regular-ish graph (each node connects to k neighbors in a ring+chords pattern),
@@ -34,7 +36,7 @@ def generate_regular_varmix(filename="examples/regular_varmix_40.thermo", n=40, 
     # small random fields
     h = rng.normal(0, 0.2, n).astype(np.float32)
 
-    np.savez(filename.replace(".thermo", ".npz"), J=J, h=h)
+    np.savez(generated_artifact_path(filename, ".npz"), J=J, h=h)
     os.makedirs(os.path.dirname(filename), exist_ok=True)
 
     with open(filename, "w") as f:

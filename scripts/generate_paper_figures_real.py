@@ -657,7 +657,7 @@ def plot_denoising(root: Path, images: Path, stdout: str = "") -> None:
         write_placeholder(
             images / "denoising_triptych_seed42.png",
             "Denoising triptych pending arrays",
-            "Expected .npy files such as examples/denoise_10x10_target.npy and examples/denoise_10x10_noisy.npy, "
+            "Expected .npy files such as artifacts/generated/examples/denoise_10x10_target.npy and artifacts/generated/examples/denoise_10x10_noisy.npy, "
             "or run benchmarks/run_denoise_final.py.",
         )
         print("[DENOISE] No target/noisy arrays found. Wrote triptych placeholder.")

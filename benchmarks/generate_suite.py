@@ -2,11 +2,13 @@
 import os
 import numpy as np
 
+from generated_artifacts import generated_artifact_path
+
 def ensure_dir(path: str):
     os.makedirs(os.path.dirname(path), exist_ok=True)
 
 def save_npz(base_thermo_path: str, J: np.ndarray, h: np.ndarray):
-    np.savez(base_thermo_path.replace(".thermo", ".npz"), J=J, h=h)
+    np.savez(generated_artifact_path(base_thermo_path, ".npz"), J=J, h=h)
 
 def symmetrize(J: np.ndarray) -> np.ndarray:
     J = np.triu(J, 1)

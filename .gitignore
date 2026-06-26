@@ -39,6 +39,13 @@ hardware/sim/*.txt
 hardware/sim/vivado.log
 hardware/sim/vivado.jou
 hardware/sim/xsim.dir/
+hardware/rtl/config.mem
+hardware/rtl/fpga_checkerboard_uart_success.txt
+*_config.mem
+*_schedule.txt
+*_sim.py
+*.spice
+*.ir
 
 out/
 archive/generated_root/
@@ -52,6 +59,13 @@ __pycache__/
 *.pyc
 .pytest_cache/
 venv/
+
+# Generated benchmark sidecars and processed artifacts
+artifacts/generated/
+artifacts/processed/
+examples/*.npy
+examples/*.npz
+examples/*.json
 
 # OS Junk
 .DS_Store

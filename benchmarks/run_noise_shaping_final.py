@@ -18,6 +18,7 @@ from final_validation_common import (
     patch_generated_sim,
     run_cmd,
 )
+from generated_artifacts import generated_artifact_path
 
 MODES = ["off", "degree", "variance", "degree+variance"]
 
@@ -74,7 +75,7 @@ def generate_noise_problem(
         f.write("}\n")
 
     np.savez(
-        filename.with_suffix(".npz"),
+        generated_artifact_path(filename, ".npz"),
         J=J,
         h=h,
         variance_profile=variance_profile,
@@ -88,7 +89,7 @@ def generate_noise_problem(
         "couplings": int(np.sum(np.triu(np.abs(J) > 1e-12, 1))),
     }
 
-    filename.with_suffix(".json").write_text(
+    generated_artifact_path(filename, ".json").write_text(
         json.dumps(metadata, indent=2),
         encoding="utf-8",
     )
@@ -208,7 +209,7 @@ def main() -> None:
         steps=args.steps,
     )
 
-    data = np.load(source.with_suffix(".npz"))
+    data = np.load(generated_artifact_path(source, ".npz"))
 
     J = data["J"]
     h = data["h"]
@@ -308,8 +309,8 @@ def main() -> None:
     save_bar_plot(summary_rows, out_root / "noise_shaping_energy_comparison.png")
 
     shutil.copy2(source, out_root / source.name)
-    shutil.copy2(source.with_suffix(".json"), out_root / source.with_suffix(".json").name)
-    shutil.copy2(source.with_suffix(".npz"), out_root / source.with_suffix(".npz").name)
+    shutil.copy2(generated_artifact_path(source, ".json"), out_root / source.with_suffix(".json").name)
+    shutil.copy2(generated_artifact_path(source, ".npz"), out_root / source.with_suffix(".npz").name)
 
     best_mode = min(summary_rows, key=lambda row: row["mean_true_energy"])
 

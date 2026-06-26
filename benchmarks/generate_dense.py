@@ -1,6 +1,8 @@
 import numpy as np
 import os
 
+from generated_artifacts import generated_artifact_path
+
 def generate_dense_problem(filename="examples/dense_40.thermo", n=40, density=0.5):
     print(f"Generating Random Dense Graph (N={n}, Density={density})...")
     rng = np.random.default_rng(42) # Fixed seed for reproducibility
@@ -15,7 +17,7 @@ def generate_dense_problem(filename="examples/dense_40.thermo", n=40, density=0.
     h = rng.normal(0, 0.5, n)
     
     # Save Ground Truth params for the benchmark runner to read later
-    np.savez(filename.replace(".thermo", ".npz"), J=J, h=h)
+    np.savez(generated_artifact_path(filename, ".npz"), J=J, h=h)
     
     os.makedirs(os.path.dirname(filename), exist_ok=True)
     with open(filename, "w") as f:

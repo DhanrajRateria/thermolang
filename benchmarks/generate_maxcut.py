@@ -6,6 +6,8 @@ from pathlib import Path
 
 import numpy as np
 
+from generated_artifacts import generated_artifact_path
+
 
 def make_connected_random_graph(
     n: int,
@@ -72,7 +74,7 @@ def generate_maxcut_thermo(
         "edges": edges,
     }
 
-    filename.with_suffix(".json").write_text(
+    generated_artifact_path(filename, ".json").write_text(
         json.dumps(metadata, indent=2),
         encoding="utf-8",
     )
