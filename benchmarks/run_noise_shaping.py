@@ -93,8 +93,9 @@ def visualize(results):
                 f'{height:.2f}',
                 ha='center', va='bottom')
 
-    plt.savefig('benchmarks/noise_shaping_result.png')
-    print("\nPlot saved to benchmarks/noise_shaping_result.png")
+    os.makedirs("artifacts/generated/benchmarks", exist_ok=True)
+    plt.savefig("artifacts/generated/benchmarks/noise_shaping_result.png")
+    print("\nPlot saved to artifacts/generated/benchmarks/noise_shaping_result.png")
 
 if __name__ == "__main__":
     data = run_benchmark()

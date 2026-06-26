@@ -66,6 +66,7 @@ artifacts/processed/
 examples/*.npy
 examples/*.npz
 examples/*.json
+benchmarks/*.png
 
 # OS Junk
 .DS_Store

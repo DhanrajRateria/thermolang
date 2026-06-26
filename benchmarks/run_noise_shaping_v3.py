@@ -114,8 +114,9 @@ def run_experiment():
         height = bar.get_height()
         plt.text(bar.get_x() + bar.get_width()/2., height, f'{height:.1f}', ha='center', va='bottom')
         
-    plt.savefig("benchmarks/noise_shaping_feedback.png")
-    print(f"\n[Artifact] Saved plot to benchmarks/noise_shaping_feedback.png")
+        os.makedirs("artifacts/generated/benchmarks", exist_ok=True)
+        plt.savefig("artifacts/generated/benchmarks/noise_shaping_feedback.png")
+        print(f"\n[Artifact] Saved plot to artifacts/generated/benchmarks/noise_shaping_feedback.png")
 
 if __name__ == "__main__":
     run_experiment()
