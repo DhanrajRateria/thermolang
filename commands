@@ -1,14 +1,20 @@
+cmake -B build -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTS=ON
+cmake --build build --parallel
+
+cd build
+ctest --verbose
+cd ..
+
 cat examples/checkerboard.thermo
 
-./build/thermolangc examples/checkerboard.thermo --target=fpga
+./build/thermolangc examples/checkerboard.thermo --target=fpga | tee logs/checkerboard_compile.txt
 
 ls -l checkerboard_config.mem checkerboard_schedule.txt
-
 head -40 checkerboard_config.mem
-
 cat checkerboard_schedule.txt
 
-python3 benchmarks/run_digital_twin.py examples/checkerboard.thermo
+python3 benchmarks/run_digital_twin.py examples/checkerboard.thermo | tee logs/checkerboard_digital_twin.txt
 
-make twin EXAMPLE=examples/checkerboard.thermo
+python3 benchmarks/run_maxcut_final.py | tee logs/maxcut_final.txt
 
+python3 benchmarks/run_denoise_final.py | tee logs/denoise_final.txt

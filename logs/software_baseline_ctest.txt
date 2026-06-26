@@ -1,0 +1,954 @@
+UpdateCTestConfiguration  from :/home/dhanraj/thermolang/build/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dhanraj/thermolang/build/DartConfiguration.tcl
+Test project /home/dhanraj/thermolang/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 1
+      Start  1: LexerTest.TokenizeLetStatement
+
+1: Test command: /home/dhanraj/thermolang/build/tests/run_tests "--gtest_filter=LexerTest.TokenizeLetStatement" "--gtest_also_run_disabled_tests"
+1: Working Directory: /home/dhanraj/thermolang/build/tests
+1: Test timeout computed to be: 10
+1: Running main() from /home/dhanraj/thermolang/build/_deps/googletest-src/googletest/src/gtest_main.cc
+1: Note: Google Test filter = LexerTest.TokenizeLetStatement
+1: [==========] Running 1 test from 1 test suite.
+1: [----------] Global test environment set-up.
+1: [----------] 1 test from LexerTest
+1: [ RUN      ] LexerTest.TokenizeLetStatement
+1: [       OK ] LexerTest.TokenizeLetStatement (0 ms)
+1: [----------] 1 test from LexerTest (0 ms total)
+1: 
+1: [----------] Global test environment tear-down
+1: [==========] 1 test from 1 test suite ran. (0 ms total)
+1: [  PASSED  ] 1 test.
+ 1/35 Test  #1: LexerTest.TokenizeLetStatement ..............................   Passed    0.00 sec
+test 2
+      Start  2: ParserTest.ParseLetStatement
+
+2: Test command: /home/dhanraj/thermolang/build/tests/run_tests "--gtest_filter=ParserTest.ParseLetStatement" "--gtest_also_run_disabled_tests"
+2: Working Directory: /home/dhanraj/thermolang/build/tests
+2: Test timeout computed to be: 10
+2: Running main() from /home/dhanraj/thermolang/build/_deps/googletest-src/googletest/src/gtest_main.cc
+2: Note: Google Test filter = ParserTest.ParseLetStatement
+2: [==========] Running 1 test from 1 test suite.
+2: [----------] Global test environment set-up.
+2: [----------] 1 test from ParserTest
+2: [ RUN      ] ParserTest.ParseLetStatement
+2: [       OK ] ParserTest.ParseLetStatement (0 ms)
+2: [----------] 1 test from ParserTest (0 ms total)
+2: 
+2: [----------] Global test environment tear-down
+2: [==========] 1 test from 1 test suite ran. (0 ms total)
+2: [  PASSED  ] 1 test.
+ 2/35 Test  #2: ParserTest.ParseLetStatement ................................   Passed    0.00 sec
+test 3
+      Start  3: AnalysisTest.DetectsUndeclaredVariable
+
+3: Test command: /home/dhanraj/thermolang/build/tests/run_tests "--gtest_filter=AnalysisTest.DetectsUndeclaredVariable" "--gtest_also_run_disabled_tests"
+3: Working Directory: /home/dhanraj/thermolang/build/tests
+3: Test timeout computed to be: 10
+3: Running main() from /home/dhanraj/thermolang/build/_deps/googletest-src/googletest/src/gtest_main.cc
+3: Note: Google Test filter = AnalysisTest.DetectsUndeclaredVariable
+3: [==========] Running 1 test from 1 test suite.
+3: [----------] Global test environment set-up.
+3: [----------] 1 test from AnalysisTest
+3: [ RUN      ] AnalysisTest.DetectsUndeclaredVariable
+3: Type Error: Undefined variable 'y'
+3: [       OK ] AnalysisTest.DetectsUndeclaredVariable (0 ms)
+3: [----------] 1 test from AnalysisTest (0 ms total)
+3: 
+3: [----------] Global test environment tear-down
+3: [==========] 1 test from 1 test suite ran. (0 ms total)
+3: [  PASSED  ] 1 test.
+ 3/35 Test  #3: AnalysisTest.DetectsUndeclaredVariable ......................   Passed    0.00 sec
+test 4
+      Start  4: AnalysisTest.AcceptsValidVariableUsage
+
+4: Test command: /home/dhanraj/thermolang/build/tests/run_tests "--gtest_filter=AnalysisTest.AcceptsValidVariableUsage" "--gtest_also_run_disabled_tests"
+4: Working Directory: /home/dhanraj/thermolang/build/tests
+4: Test timeout computed to be: 10
+4: Running main() from /home/dhanraj/thermolang/build/_deps/googletest-src/googletest/src/gtest_main.cc
+4: Note: Google Test filter = AnalysisTest.AcceptsValidVariableUsage
+4: [==========] Running 1 test from 1 test suite.
+4: [----------] Global test environment set-up.
+4: [----------] 1 test from AnalysisTest
+4: [ RUN      ] AnalysisTest.AcceptsValidVariableUsage
+4: [       OK ] AnalysisTest.AcceptsValidVariableUsage (0 ms)
+4: [----------] 1 test from AnalysisTest (0 ms total)
+4: 
+4: [----------] Global test environment tear-down
+4: [==========] 1 test from 1 test suite ran. (0 ms total)
+4: [  PASSED  ] 1 test.
+ 4/35 Test  #4: AnalysisTest.AcceptsValidVariableUsage ......................   Passed    0.00 sec
+test 5
+      Start  5: AnalysisTest.FunctionAndBlockScoping
+
+5: Test command: /home/dhanraj/thermolang/build/tests/run_tests "--gtest_filter=AnalysisTest.FunctionAndBlockScoping" "--gtest_also_run_disabled_tests"
+5: Working Directory: /home/dhanraj/thermolang/build/tests
+5: Test timeout computed to be: 10
+5: Running main() from /home/dhanraj/thermolang/build/_deps/googletest-src/googletest/src/gtest_main.cc
+5: Note: Google Test filter = AnalysisTest.FunctionAndBlockScoping
+5: [==========] Running 1 test from 1 test suite.
+5: [----------] Global test environment set-up.
+5: [----------] 1 test from AnalysisTest
+5: [ RUN      ] AnalysisTest.FunctionAndBlockScoping
+5: [       OK ] AnalysisTest.FunctionAndBlockScoping (0 ms)
+5: [----------] 1 test from AnalysisTest (0 ms total)
+5: 
+5: [----------] Global test environment tear-down
+5: [==========] 1 test from 1 test suite ran. (0 ms total)
+5: [  PASSED  ] 1 test.
+ 5/35 Test  #5: AnalysisTest.FunctionAndBlockScoping ........................   Passed    0.00 sec
+test 6
+      Start  6: AnalysisTest.DetectsVariableOutOfScope
+
+6: Test command: /home/dhanraj/thermolang/build/tests/run_tests "--gtest_filter=AnalysisTest.DetectsVariableOutOfScope" "--gtest_also_run_disabled_tests"
+6: Working Directory: /home/dhanraj/thermolang/build/tests
+6: Test timeout computed to be: 10
+6: Running main() from /home/dhanraj/thermolang/build/_deps/googletest-src/googletest/src/gtest_main.cc
+6: Note: Google Test filter = AnalysisTest.DetectsVariableOutOfScope
+6: [==========] Running 1 test from 1 test suite.
+6: [----------] Global test environment set-up.
+6: [----------] 1 test from AnalysisTest
+6: [ RUN      ] AnalysisTest.DetectsVariableOutOfScope
+6: Type Error: Undefined variable 'y'
+6: [       OK ] AnalysisTest.DetectsVariableOutOfScope (0 ms)
+6: [----------] 1 test from AnalysisTest (0 ms total)
+6: 
+6: [----------] Global test environment tear-down
+6: [==========] 1 test from 1 test suite ran. (0 ms total)
+6: [  PASSED  ] 1 test.
+ 6/35 Test  #6: AnalysisTest.DetectsVariableOutOfScope ......................   Passed    0.00 sec
+test 7
+      Start  7: TypeSystemTest.BasicTypeCompatibility
+
+7: Test command: /home/dhanraj/thermolang/build/tests/run_tests "--gtest_filter=TypeSystemTest.BasicTypeCompatibility" "--gtest_also_run_disabled_tests"
+7: Working Directory: /home/dhanraj/thermolang/build/tests
+7: Test timeout computed to be: 10
+7: Running main() from /home/dhanraj/thermolang/build/_deps/googletest-src/googletest/src/gtest_main.cc
+7: Note: Google Test filter = TypeSystemTest.BasicTypeCompatibility
+7: [==========] Running 1 test from 1 test suite.
+7: [----------] Global test environment set-up.
+7: [----------] 1 test from TypeSystemTest
+7: [ RUN      ] TypeSystemTest.BasicTypeCompatibility
+7: [       OK ] TypeSystemTest.BasicTypeCompatibility (0 ms)
+7: [----------] 1 test from TypeSystemTest (0 ms total)
+7: 
+7: [----------] Global test environment tear-down
+7: [==========] 1 test from 1 test suite ran. (0 ms total)
+7: [  PASSED  ] 1 test.
+ 7/35 Test  #7: TypeSystemTest.BasicTypeCompatibility .......................   Passed    0.00 sec
+test 8
+      Start  8: TypeSystemTest.TypeMismatch
+
+8: Test command: /home/dhanraj/thermolang/build/tests/run_tests "--gtest_filter=TypeSystemTest.TypeMismatch" "--gtest_also_run_disabled_tests"
+8: Working Directory: /home/dhanraj/thermolang/build/tests
+8: Test timeout computed to be: 10
+8: Running main() from /home/dhanraj/thermolang/build/_deps/googletest-src/googletest/src/gtest_main.cc
+8: Note: Google Test filter = TypeSystemTest.TypeMismatch
+8: [==========] Running 1 test from 1 test suite.
+8: [----------] Global test environment set-up.
+8: [----------] 1 test from TypeSystemTest
+8: [ RUN      ] TypeSystemTest.TypeMismatch
+8: Type Error: Initializer for variable 'x' - Expected 'int' but got 'float'
+8: [       OK ] TypeSystemTest.TypeMismatch (0 ms)
+8: [----------] 1 test from TypeSystemTest (0 ms total)
+8: 
+8: [----------] Global test environment tear-down
+8: [==========] 1 test from 1 test suite ran. (0 ms total)
+8: [  PASSED  ] 1 test.
+ 8/35 Test  #8: TypeSystemTest.TypeMismatch .................................   Passed    0.00 sec
+test 9
+      Start  9: TypeSystemTest.FunctionTypeChecking
+
+9: Test command: /home/dhanraj/thermolang/build/tests/run_tests "--gtest_filter=TypeSystemTest.FunctionTypeChecking" "--gtest_also_run_disabled_tests"
+9: Working Directory: /home/dhanraj/thermolang/build/tests
+9: Test timeout computed to be: 10
+9: Running main() from /home/dhanraj/thermolang/build/_deps/googletest-src/googletest/src/gtest_main.cc
+9: Note: Google Test filter = TypeSystemTest.FunctionTypeChecking
+9: [==========] Running 1 test from 1 test suite.
+9: [----------] Global test environment set-up.
+9: [----------] 1 test from TypeSystemTest
+9: [ RUN      ] TypeSystemTest.FunctionTypeChecking
+9: [       OK ] TypeSystemTest.FunctionTypeChecking (0 ms)
+9: [----------] 1 test from TypeSystemTest (0 ms total)
+9: 
+9: [----------] Global test environment tear-down
+9: [==========] 1 test from 1 test suite ran. (0 ms total)
+9: [  PASSED  ] 1 test.
+ 9/35 Test  #9: TypeSystemTest.FunctionTypeChecking .........................   Passed    0.00 sec
+test 10
+      Start 10: TypeSystemTest.FunctionTypeMismatch
+
+10: Test command: /home/dhanraj/thermolang/build/tests/run_tests "--gtest_filter=TypeSystemTest.FunctionTypeMismatch" "--gtest_also_run_disabled_tests"
+10: Working Directory: /home/dhanraj/thermolang/build/tests
+10: Test timeout computed to be: 10
+10: Running main() from /home/dhanraj/thermolang/build/_deps/googletest-src/googletest/src/gtest_main.cc
+10: Note: Google Test filter = TypeSystemTest.FunctionTypeMismatch
+10: [==========] Running 1 test from 1 test suite.
+10: [----------] Global test environment set-up.
+10: [----------] 1 test from TypeSystemTest
+10: [ RUN      ] TypeSystemTest.FunctionTypeMismatch
+10: Type Error: Initializer for variable 'result' - Expected 'float' but got 'int'
+10: [       OK ] TypeSystemTest.FunctionTypeMismatch (0 ms)
+10: [----------] 1 test from TypeSystemTest (0 ms total)
+10: 
+10: [----------] Global test environment tear-down
+10: [==========] 1 test from 1 test suite ran. (0 ms total)
+10: [  PASSED  ] 1 test.
+10/35 Test #10: TypeSystemTest.FunctionTypeMismatch .........................   Passed    0.00 sec
+test 11
+      Start 11: TypeSystemTest.StochasticFunction
+
+11: Test command: /home/dhanraj/thermolang/build/tests/run_tests "--gtest_filter=TypeSystemTest.StochasticFunction" "--gtest_also_run_disabled_tests"
+11: Working Directory: /home/dhanraj/thermolang/build/tests
+11: Test timeout computed to be: 10
+11: Running main() from /home/dhanraj/thermolang/build/_deps/googletest-src/googletest/src/gtest_main.cc
+11: Note: Google Test filter = TypeSystemTest.StochasticFunction
+11: [==========] Running 1 test from 1 test suite.
+11: [----------] Global test environment set-up.
+11: [----------] 1 test from TypeSystemTest
+11: [ RUN      ] TypeSystemTest.StochasticFunction
+11: [       OK ] TypeSystemTest.StochasticFunction (0 ms)
+11: [----------] 1 test from TypeSystemTest (0 ms total)
+11: 
+11: [----------] Global test environment tear-down
+11: [==========] 1 test from 1 test suite ran. (0 ms total)
+11: [  PASSED  ] 1 test.
+11/35 Test #11: TypeSystemTest.StochasticFunction ...........................   Passed    0.00 sec
+test 12
+      Start 12: TypeSystemTest.DistributionType
+
+12: Test command: /home/dhanraj/thermolang/build/tests/run_tests "--gtest_filter=TypeSystemTest.DistributionType" "--gtest_also_run_disabled_tests"
+12: Working Directory: /home/dhanraj/thermolang/build/tests
+12: Test timeout computed to be: 10
+12: Running main() from /home/dhanraj/thermolang/build/_deps/googletest-src/googletest/src/gtest_main.cc
+12: Note: Google Test filter = TypeSystemTest.DistributionType
+12: [==========] Running 1 test from 1 test suite.
+12: [----------] Global test environment set-up.
+12: [----------] 1 test from TypeSystemTest
+12: [ RUN      ] TypeSystemTest.DistributionType
+12: [       OK ] TypeSystemTest.DistributionType (0 ms)
+12: [----------] 1 test from TypeSystemTest (0 ms total)
+12: 
+12: [----------] Global test environment tear-down
+12: [==========] 1 test from 1 test suite ran. (0 ms total)
+12: [  PASSED  ] 1 test.
+12/35 Test #12: TypeSystemTest.DistributionType .............................   Passed    0.00 sec
+test 13
+      Start 13: TypeSystemTest.EnergyFunctionIsPassedToAnneal
+
+13: Test command: /home/dhanraj/thermolang/build/tests/run_tests "--gtest_filter=TypeSystemTest.EnergyFunctionIsPassedToAnneal" "--gtest_also_run_disabled_tests"
+13: Working Directory: /home/dhanraj/thermolang/build/tests
+13: Test timeout computed to be: 10
+13: Running main() from /home/dhanraj/thermolang/build/_deps/googletest-src/googletest/src/gtest_main.cc
+13: Note: Google Test filter = TypeSystemTest.EnergyFunctionIsPassedToAnneal
+13: [==========] Running 1 test from 1 test suite.
+13: [----------] Global test environment set-up.
+13: [----------] 1 test from TypeSystemTest
+13: [ RUN      ] TypeSystemTest.EnergyFunctionIsPassedToAnneal
+13: [       OK ] TypeSystemTest.EnergyFunctionIsPassedToAnneal (0 ms)
+13: [----------] 1 test from TypeSystemTest (0 ms total)
+13: 
+13: [----------] Global test environment tear-down
+13: [==========] 1 test from 1 test suite ran. (0 ms total)
+13: [  PASSED  ] 1 test.
+13/35 Test #13: TypeSystemTest.EnergyFunctionIsPassedToAnneal ...............   Passed    0.00 sec
+test 14
+      Start 14: TypeSystemTest.CircuitType
+
+14: Test command: /home/dhanraj/thermolang/build/tests/run_tests "--gtest_filter=TypeSystemTest.CircuitType" "--gtest_also_run_disabled_tests"
+14: Working Directory: /home/dhanraj/thermolang/build/tests
+14: Test timeout computed to be: 10
+14: Running main() from /home/dhanraj/thermolang/build/_deps/googletest-src/googletest/src/gtest_main.cc
+14: Note: Google Test filter = TypeSystemTest.CircuitType
+14: [==========] Running 1 test from 1 test suite.
+14: [----------] Global test environment set-up.
+14: [----------] 1 test from TypeSystemTest
+14: [ RUN      ] TypeSystemTest.CircuitType
+14: [       OK ] TypeSystemTest.CircuitType (0 ms)
+14: [----------] 1 test from TypeSystemTest (0 ms total)
+14: 
+14: [----------] Global test environment tear-down
+14: [==========] 1 test from 1 test suite ran. (0 ms total)
+14: [  PASSED  ] 1 test.
+14/35 Test #14: TypeSystemTest.CircuitType ..................................   Passed    0.00 sec
+test 15
+      Start 15: TypeSystemTest.FailsOnInvalidEnergyFunctionReturnType
+
+15: Test command: /home/dhanraj/thermolang/build/tests/run_tests "--gtest_filter=TypeSystemTest.FailsOnInvalidEnergyFunctionReturnType" "--gtest_also_run_disabled_tests"
+15: Working Directory: /home/dhanraj/thermolang/build/tests
+15: Test timeout computed to be: 10
+15: Running main() from /home/dhanraj/thermolang/build/_deps/googletest-src/googletest/src/gtest_main.cc
+15: Note: Google Test filter = TypeSystemTest.FailsOnInvalidEnergyFunctionReturnType
+15: [==========] Running 1 test from 1 test suite.
+15: [----------] Global test environment set-up.
+15: [----------] 1 test from TypeSystemTest
+15: [ RUN      ] TypeSystemTest.FailsOnInvalidEnergyFunctionReturnType
+15: Type Error: Energy function 'bad_energy' must be declared to return 'float'.
+15: [       OK ] TypeSystemTest.FailsOnInvalidEnergyFunctionReturnType (0 ms)
+15: [----------] 1 test from TypeSystemTest (0 ms total)
+15: 
+15: [----------] Global test environment tear-down
+15: [==========] 1 test from 1 test suite ran. (0 ms total)
+15: [  PASSED  ] 1 test.
+15/35 Test #15: TypeSystemTest.FailsOnInvalidEnergyFunctionReturnType .......   Passed    0.00 sec
+test 16
+      Start 16: TypeSystemTest.FailsOnAnnealWithNonEnergyFunction
+
+16: Test command: /home/dhanraj/thermolang/build/tests/run_tests "--gtest_filter=TypeSystemTest.FailsOnAnnealWithNonEnergyFunction" "--gtest_also_run_disabled_tests"
+16: Working Directory: /home/dhanraj/thermolang/build/tests
+16: Test timeout computed to be: 10
+16: Running main() from /home/dhanraj/thermolang/build/_deps/googletest-src/googletest/src/gtest_main.cc
+16: Note: Google Test filter = TypeSystemTest.FailsOnAnnealWithNonEnergyFunction
+16: [==========] Running 1 test from 1 test suite.
+16: [----------] Global test environment set-up.
+16: [----------] 1 test from TypeSystemTest
+16: [ RUN      ] TypeSystemTest.FailsOnAnnealWithNonEnergyFunction
+16: Parser Error: Expect '->' for return type.
+16: Parser Error: Expect expression.
+16: [       OK ] TypeSystemTest.FailsOnAnnealWithNonEnergyFunction (0 ms)
+16: [----------] 1 test from TypeSystemTest (0 ms total)
+16: 
+16: [----------] Global test environment tear-down
+16: [==========] 1 test from 1 test suite ran. (0 ms total)
+16: [  PASSED  ] 1 test.
+16/35 Test #16: TypeSystemTest.FailsOnAnnealWithNonEnergyFunction ...........   Passed    0.00 sec
+test 17
+      Start 17: TypeSystemTest.AcceptsValidCustomTypes
+
+17: Test command: /home/dhanraj/thermolang/build/tests/run_tests "--gtest_filter=TypeSystemTest.AcceptsValidCustomTypes" "--gtest_also_run_disabled_tests"
+17: Working Directory: /home/dhanraj/thermolang/build/tests
+17: Test timeout computed to be: 10
+17: Running main() from /home/dhanraj/thermolang/build/_deps/googletest-src/googletest/src/gtest_main.cc
+17: Note: Google Test filter = TypeSystemTest.AcceptsValidCustomTypes
+17: [==========] Running 1 test from 1 test suite.
+17: [----------] Global test environment set-up.
+17: [----------] 1 test from TypeSystemTest
+17: [ RUN      ] TypeSystemTest.AcceptsValidCustomTypes
+17: [       OK ] TypeSystemTest.AcceptsValidCustomTypes (0 ms)
+17: [----------] 1 test from TypeSystemTest (0 ms total)
+17: 
+17: [----------] Global test environment tear-down
+17: [==========] 1 test from 1 test suite ran. (0 ms total)
+17: [  PASSED  ] 1 test.
+17/35 Test #17: TypeSystemTest.AcceptsValidCustomTypes ......................   Passed    0.00 sec
+test 18
+      Start 18: IrGeneratorTest.SimpleFunctionWithLocals
+
+18: Test command: /home/dhanraj/thermolang/build/tests/run_tests "--gtest_filter=IrGeneratorTest.SimpleFunctionWithLocals" "--gtest_also_run_disabled_tests"
+18: Working Directory: /home/dhanraj/thermolang/build/tests
+18: Test timeout computed to be: 10
+18: Running main() from /home/dhanraj/thermolang/build/_deps/googletest-src/googletest/src/gtest_main.cc
+18: Note: Google Test filter = IrGeneratorTest.SimpleFunctionWithLocals
+18: [==========] Running 1 test from 1 test suite.
+18: [----------] Global test environment set-up.
+18: [----------] 1 test from IrGeneratorTest
+18: [ RUN      ] IrGeneratorTest.SimpleFunctionWithLocals
+18: [       OK ] IrGeneratorTest.SimpleFunctionWithLocals (0 ms)
+18: [----------] 1 test from IrGeneratorTest (0 ms total)
+18: 
+18: [----------] Global test environment tear-down
+18: [==========] 1 test from 1 test suite ran. (0 ms total)
+18: [  PASSED  ] 1 test.
+18/35 Test #18: IrGeneratorTest.SimpleFunctionWithLocals ....................   Passed    0.00 sec
+test 19
+      Start 19: IrGeneratorTest.FunctionCall
+
+19: Test command: /home/dhanraj/thermolang/build/tests/run_tests "--gtest_filter=IrGeneratorTest.FunctionCall" "--gtest_also_run_disabled_tests"
+19: Working Directory: /home/dhanraj/thermolang/build/tests
+19: Test timeout computed to be: 10
+19: Running main() from /home/dhanraj/thermolang/build/_deps/googletest-src/googletest/src/gtest_main.cc
+19: Note: Google Test filter = IrGeneratorTest.FunctionCall
+19: [==========] Running 1 test from 1 test suite.
+19: [----------] Global test environment set-up.
+19: [----------] 1 test from IrGeneratorTest
+19: [ RUN      ] IrGeneratorTest.FunctionCall
+19: [       OK ] IrGeneratorTest.FunctionCall (0 ms)
+19: [----------] 1 test from IrGeneratorTest (0 ms total)
+19: 
+19: [----------] Global test environment tear-down
+19: [==========] 1 test from 1 test suite ran. (0 ms total)
+19: [  PASSED  ] 1 test.
+19/35 Test #19: IrGeneratorTest.FunctionCall ................................   Passed    0.00 sec
+test 20
+      Start 20: IrGeneratorTest.StochasticFunctionIsGenerated
+
+20: Test command: /home/dhanraj/thermolang/build/tests/run_tests "--gtest_filter=IrGeneratorTest.StochasticFunctionIsGenerated" "--gtest_also_run_disabled_tests"
+20: Working Directory: /home/dhanraj/thermolang/build/tests
+20: Test timeout computed to be: 10
+20: Running main() from /home/dhanraj/thermolang/build/_deps/googletest-src/googletest/src/gtest_main.cc
+20: Note: Google Test filter = IrGeneratorTest.StochasticFunctionIsGenerated
+20: [==========] Running 1 test from 1 test suite.
+20: [----------] Global test environment set-up.
+20: [----------] 1 test from IrGeneratorTest
+20: [ RUN      ] IrGeneratorTest.StochasticFunctionIsGenerated
+20: [       OK ] IrGeneratorTest.StochasticFunctionIsGenerated (0 ms)
+20: [----------] 1 test from IrGeneratorTest (0 ms total)
+20: 
+20: [----------] Global test environment tear-down
+20: [==========] 1 test from 1 test suite ran. (0 ms total)
+20: [  PASSED  ] 1 test.
+20/35 Test #20: IrGeneratorTest.StochasticFunctionIsGenerated ...............   Passed    0.00 sec
+test 21
+      Start 21: IrGeneratorTest.ParallelBlockGeneratesParallelFor
+
+21: Test command: /home/dhanraj/thermolang/build/tests/run_tests "--gtest_filter=IrGeneratorTest.ParallelBlockGeneratesParallelFor" "--gtest_also_run_disabled_tests"
+21: Working Directory: /home/dhanraj/thermolang/build/tests
+21: Test timeout computed to be: 10
+21: Running main() from /home/dhanraj/thermolang/build/_deps/googletest-src/googletest/src/gtest_main.cc
+21: Note: Google Test filter = IrGeneratorTest.ParallelBlockGeneratesParallelFor
+21: [==========] Running 1 test from 1 test suite.
+21: [----------] Global test environment set-up.
+21: [----------] 1 test from IrGeneratorTest
+21: [ RUN      ] IrGeneratorTest.ParallelBlockGeneratesParallelFor
+21:   IrGenerator: Found parallel block.
+21: [       OK ] IrGeneratorTest.ParallelBlockGeneratesParallelFor (0 ms)
+21: [----------] 1 test from IrGeneratorTest (0 ms total)
+21: 
+21: [----------] Global test environment tear-down
+21: [==========] 1 test from 1 test suite ran. (0 ms total)
+21: [  PASSED  ] 1 test.
+21/35 Test #21: IrGeneratorTest.ParallelBlockGeneratesParallelFor ...........   Passed    0.00 sec
+test 22
+      Start 22: OptimizerTest.ConstantFoldingPass
+
+22: Test command: /home/dhanraj/thermolang/build/tests/run_tests "--gtest_filter=OptimizerTest.ConstantFoldingPass" "--gtest_also_run_disabled_tests"
+22: Working Directory: /home/dhanraj/thermolang/build/tests
+22: Test timeout computed to be: 10
+22: Running main() from /home/dhanraj/thermolang/build/_deps/googletest-src/googletest/src/gtest_main.cc
+22: Note: Google Test filter = OptimizerTest.ConstantFoldingPass
+22: [==========] Running 1 test from 1 test suite.
+22: [----------] Global test environment set-up.
+22: [----------] 1 test from OptimizerTest
+22: [ RUN      ] OptimizerTest.ConstantFoldingPass
+22: Running optimization passes on function 'test_folding'...
+22: Running Constant Folding on 'test_folding'
+22:   Folded 2 constant expressions
+22: Running Constant Folding on 'test_folding'
+22: [       OK ] OptimizerTest.ConstantFoldingPass (0 ms)
+22: [----------] 1 test from OptimizerTest (0 ms total)
+22: 
+22: [----------] Global test environment tear-down
+22: [==========] 1 test from 1 test suite ran. (0 ms total)
+22: [  PASSED  ] 1 test.
+22/35 Test #22: OptimizerTest.ConstantFoldingPass ...........................   Passed    0.00 sec
+test 23
+      Start 23: OptimizerTest.EnergyFunctionOptimization
+
+23: Test command: /home/dhanraj/thermolang/build/tests/run_tests "--gtest_filter=OptimizerTest.EnergyFunctionOptimization" "--gtest_also_run_disabled_tests"
+23: Working Directory: /home/dhanraj/thermolang/build/tests
+23: Test timeout computed to be: 10
+23: Running main() from /home/dhanraj/thermolang/build/_deps/googletest-src/googletest/src/gtest_main.cc
+23: Note: Google Test filter = OptimizerTest.EnergyFunctionOptimization
+23: [==========] Running 1 test from 1 test suite.
+23: [----------] Global test environment set-up.
+23: [----------] 1 test from OptimizerTest
+23: [ RUN      ] OptimizerTest.EnergyFunctionOptimization
+23: Running optimization passes on function 'quadratic_energy'...
+23: Running energy function optimization on 'quadratic_energy'
+23:   Detected quadratic form pattern in energy function.
+23:   Simplified energy function IR with QUADRATIC_FORM instruction.
+23:   Skipping ConstantFoldingPass; function has been condensed to a high-level form.
+23: Running energy function optimization on 'quadratic_energy'
+23:   Skipping EnergyFunctionPass; already optimized to a high-level form.
+23:   Skipping ConstantFoldingPass; function has been condensed to a high-level form.
+23: [       OK ] OptimizerTest.EnergyFunctionOptimization (0 ms)
+23: [----------] 1 test from OptimizerTest (0 ms total)
+23: 
+23: [----------] Global test environment tear-down
+23: [==========] 1 test from 1 test suite ran. (0 ms total)
+23: [  PASSED  ] 1 test.
+23/35 Test #23: OptimizerTest.EnergyFunctionOptimization ....................   Passed    0.00 sec
+test 24
+      Start 24: OptimizerTest.ThermalSchedulingPass
+
+24: Test command: /home/dhanraj/thermolang/build/tests/run_tests "--gtest_filter=OptimizerTest.ThermalSchedulingPass" "--gtest_also_run_disabled_tests"
+24: Working Directory: /home/dhanraj/thermolang/build/tests
+24: Test timeout computed to be: 10
+24: Running main() from /home/dhanraj/thermolang/build/_deps/googletest-src/googletest/src/gtest_main.cc
+24: Note: Google Test filter = OptimizerTest.ThermalSchedulingPass
+24: [==========] Running 1 test from 1 test suite.
+24: [----------] Global test environment set-up.
+24: [----------] 1 test from OptimizerTest
+24: [ RUN      ] OptimizerTest.ThermalSchedulingPass
+24:   ThermalSchedulingPass: Optimizing anneal for 'complex_energy' (4 vars).
+24:     - New Initial Temp: 3.46574 (was user-defined)
+24:     - New Steps: 4000 (was user-defined)
+24: [       OK ] OptimizerTest.ThermalSchedulingPass (0 ms)
+24: [----------] 1 test from OptimizerTest (0 ms total)
+24: 
+24: [----------] Global test environment tear-down
+24: [==========] 1 test from 1 test suite ran. (0 ms total)
+24: [  PASSED  ] 1 test.
+24/35 Test #24: OptimizerTest.ThermalSchedulingPass .........................   Passed    0.00 sec
+test 25
+      Start 25: OptimizerTest.NoiseShapingScalesAndEmitsLocalTemperatures
+
+25: Test command: /home/dhanraj/thermolang/build/tests/run_tests "--gtest_filter=OptimizerTest.NoiseShapingScalesAndEmitsLocalTemperatures" "--gtest_also_run_disabled_tests"
+25: Working Directory: /home/dhanraj/thermolang/build/tests
+25: Test timeout computed to be: 10
+25: Running main() from /home/dhanraj/thermolang/build/_deps/googletest-src/googletest/src/gtest_main.cc
+25: Note: Google Test filter = OptimizerTest.NoiseShapingScalesAndEmitsLocalTemperatures
+25: [==========] Running 1 test from 1 test suite.
+25: [----------] Global test environment set-up.
+25: [----------] 1 test from OptimizerTest
+25: [ RUN      ] OptimizerTest.NoiseShapingScalesAndEmitsLocalTemperatures
+25:   NoiseShapingPass: mode=degree+variance, strength=1, shrink_cap=0.5, degree_gain=1, var_policy=cool, var_renorm=1 (2 spins)
+25:   NoiseShapingPass: Completed variable-temperature scaling.
+25: [       OK ] OptimizerTest.NoiseShapingScalesAndEmitsLocalTemperatures (0 ms)
+25: [----------] 1 test from OptimizerTest (0 ms total)
+25: 
+25: [----------] Global test environment tear-down
+25: [==========] 1 test from 1 test suite ran. (0 ms total)
+25: [  PASSED  ] 1 test.
+25/35 Test #25: OptimizerTest.NoiseShapingScalesAndEmitsLocalTemperatures ...   Passed    0.00 sec
+test 26
+      Start 26: DomainSpecificOptTest.StochasticFunctionGeneration
+
+26: Test command: /home/dhanraj/thermolang/build/tests/run_tests "--gtest_filter=DomainSpecificOptTest.StochasticFunctionGeneration" "--gtest_also_run_disabled_tests"
+26: Working Directory: /home/dhanraj/thermolang/build/tests
+26: Test timeout computed to be: 10
+26: Running main() from /home/dhanraj/thermolang/build/_deps/googletest-src/googletest/src/gtest_main.cc
+26: Note: Google Test filter = DomainSpecificOptTest.StochasticFunctionGeneration
+26: [==========] Running 1 test from 1 test suite.
+26: [----------] Global test environment set-up.
+26: [----------] 1 test from DomainSpecificOptTest
+26: [ RUN      ] DomainSpecificOptTest.StochasticFunctionGeneration
+26: [       OK ] DomainSpecificOptTest.StochasticFunctionGeneration (0 ms)
+26: [----------] 1 test from DomainSpecificOptTest (0 ms total)
+26: 
+26: [----------] Global test environment tear-down
+26: [==========] 1 test from 1 test suite ran. (0 ms total)
+26: [  PASSED  ] 1 test.
+26/35 Test #26: DomainSpecificOptTest.StochasticFunctionGeneration ..........   Passed    0.00 sec
+test 27
+      Start 27: DomainSpecificOptTest.EnergyFunctionGeneration
+
+27: Test command: /home/dhanraj/thermolang/build/tests/run_tests "--gtest_filter=DomainSpecificOptTest.EnergyFunctionGeneration" "--gtest_also_run_disabled_tests"
+27: Working Directory: /home/dhanraj/thermolang/build/tests
+27: Test timeout computed to be: 10
+27: Running main() from /home/dhanraj/thermolang/build/_deps/googletest-src/googletest/src/gtest_main.cc
+27: Note: Google Test filter = DomainSpecificOptTest.EnergyFunctionGeneration
+27: [==========] Running 1 test from 1 test suite.
+27: [----------] Global test environment set-up.
+27: [----------] 1 test from DomainSpecificOptTest
+27: [ RUN      ] DomainSpecificOptTest.EnergyFunctionGeneration
+27: [       OK ] DomainSpecificOptTest.EnergyFunctionGeneration (0 ms)
+27: [----------] 1 test from DomainSpecificOptTest (0 ms total)
+27: 
+27: [----------] Global test environment tear-down
+27: [==========] 1 test from 1 test suite ran. (0 ms total)
+27: [  PASSED  ] 1 test.
+27/35 Test #27: DomainSpecificOptTest.EnergyFunctionGeneration ..............   Passed    0.00 sec
+test 28
+      Start 28: DomainSpecificOptTest.EnergyFunctionOptimization
+
+28: Test command: /home/dhanraj/thermolang/build/tests/run_tests "--gtest_filter=DomainSpecificOptTest.EnergyFunctionOptimization" "--gtest_also_run_disabled_tests"
+28: Working Directory: /home/dhanraj/thermolang/build/tests
+28: Test timeout computed to be: 10
+28: Running main() from /home/dhanraj/thermolang/build/_deps/googletest-src/googletest/src/gtest_main.cc
+28: Note: Google Test filter = DomainSpecificOptTest.EnergyFunctionOptimization
+28: [==========] Running 1 test from 1 test suite.
+28: [----------] Global test environment set-up.
+28: [----------] 1 test from DomainSpecificOptTest
+28: [ RUN      ] DomainSpecificOptTest.EnergyFunctionOptimization
+28: Running optimization passes on function 'quadratic_energy'...
+28: Running energy function optimization on 'quadratic_energy'
+28:   Detected quadratic form pattern in energy function.
+28:   Simplified energy function IR with QUADRATIC_FORM instruction.
+28: Running energy function optimization on 'quadratic_energy'
+28:   Skipping EnergyFunctionPass; already optimized to a high-level form.
+28: [       OK ] DomainSpecificOptTest.EnergyFunctionOptimization (0 ms)
+28: [----------] 1 test from DomainSpecificOptTest (0 ms total)
+28: 
+28: [----------] Global test environment tear-down
+28: [==========] 1 test from 1 test suite ran. (0 ms total)
+28: [  PASSED  ] 1 test.
+28/35 Test #28: DomainSpecificOptTest.EnergyFunctionOptimization ............   Passed    0.00 sec
+test 29
+      Start 29: DomainSpecificOptTest.ThermalBlockGeneration
+
+29: Test command: /home/dhanraj/thermolang/build/tests/run_tests "--gtest_filter=DomainSpecificOptTest.ThermalBlockGeneration" "--gtest_also_run_disabled_tests"
+29: Working Directory: /home/dhanraj/thermolang/build/tests
+29: Test timeout computed to be: 10
+29: Running main() from /home/dhanraj/thermolang/build/_deps/googletest-src/googletest/src/gtest_main.cc
+29: Note: Google Test filter = DomainSpecificOptTest.ThermalBlockGeneration
+29: [==========] Running 1 test from 1 test suite.
+29: [----------] Global test environment set-up.
+29: [----------] 1 test from DomainSpecificOptTest
+29: [ RUN      ] DomainSpecificOptTest.ThermalBlockGeneration
+29: [       OK ] DomainSpecificOptTest.ThermalBlockGeneration (0 ms)
+29: [----------] 1 test from DomainSpecificOptTest (0 ms total)
+29: 
+29: [----------] Global test environment tear-down
+29: [==========] 1 test from 1 test suite ran. (0 ms total)
+29: [  PASSED  ] 1 test.
+29/35 Test #29: DomainSpecificOptTest.ThermalBlockGeneration ................   Passed    0.00 sec
+test 30
+      Start 30: DomainSpecificOptTest.VarianceTracking
+
+30: Test command: /home/dhanraj/thermolang/build/tests/run_tests "--gtest_filter=DomainSpecificOptTest.VarianceTracking" "--gtest_also_run_disabled_tests"
+30: Working Directory: /home/dhanraj/thermolang/build/tests
+30: Test timeout computed to be: 10
+30: Running main() from /home/dhanraj/thermolang/build/_deps/googletest-src/googletest/src/gtest_main.cc
+30: Note: Google Test filter = DomainSpecificOptTest.VarianceTracking
+30: [==========] Running 1 test from 1 test suite.
+30: [----------] Global test environment set-up.
+30: [----------] 1 test from DomainSpecificOptTest
+30: [ RUN      ] DomainSpecificOptTest.VarianceTracking
+30: Running optimization passes on function 'test_variance'...
+30: Running variance tracking on stochastic function 'test_variance'
+30: [       OK ] DomainSpecificOptTest.VarianceTracking (0 ms)
+30: [----------] 1 test from DomainSpecificOptTest (0 ms total)
+30: 
+30: [----------] Global test environment tear-down
+30: [==========] 1 test from 1 test suite ran. (0 ms total)
+30: [  PASSED  ] 1 test.
+30/35 Test #30: DomainSpecificOptTest.VarianceTracking ......................   Passed    0.00 sec
+test 31
+      Start 31: DomainSpecificOptTest.FirstClassEnergyFunction
+
+31: Test command: /home/dhanraj/thermolang/build/tests/run_tests "--gtest_filter=DomainSpecificOptTest.FirstClassEnergyFunction" "--gtest_also_run_disabled_tests"
+31: Working Directory: /home/dhanraj/thermolang/build/tests
+31: Test timeout computed to be: 10
+31: Running main() from /home/dhanraj/thermolang/build/_deps/googletest-src/googletest/src/gtest_main.cc
+31: Note: Google Test filter = DomainSpecificOptTest.FirstClassEnergyFunction
+31: [==========] Running 1 test from 1 test suite.
+31: [----------] Global test environment set-up.
+31: [----------] 1 test from DomainSpecificOptTest
+31: [ RUN      ] DomainSpecificOptTest.FirstClassEnergyFunction
+31: Type Error: Unknown type 'EnergyFunc'
+31: Type Error: Function argument 1 - Expected 'energy<float -> float>' but got 'void'
+31: [       OK ] DomainSpecificOptTest.FirstClassEnergyFunction (0 ms)
+31: [----------] 1 test from DomainSpecificOptTest (0 ms total)
+31: 
+31: [----------] Global test environment tear-down
+31: [==========] 1 test from 1 test suite ran. (0 ms total)
+31: [  PASSED  ] 1 test.
+31/35 Test #31: DomainSpecificOptTest.FirstClassEnergyFunction ..............   Passed    0.00 sec
+test 32
+      Start 32: ControlFlowTest.IfElseIRGeneration
+
+32: Test command: /home/dhanraj/thermolang/build/tests/run_tests "--gtest_filter=ControlFlowTest.IfElseIRGeneration" "--gtest_also_run_disabled_tests"
+32: Working Directory: /home/dhanraj/thermolang/build/tests
+32: Test timeout computed to be: 10
+32: Running main() from /home/dhanraj/thermolang/build/_deps/googletest-src/googletest/src/gtest_main.cc
+32: Note: Google Test filter = ControlFlowTest.IfElseIRGeneration
+32: [==========] Running 1 test from 1 test suite.
+32: [----------] Global test environment set-up.
+32: [----------] 1 test from ControlFlowTest
+32: [ RUN      ] ControlFlowTest.IfElseIRGeneration
+32: [       OK ] ControlFlowTest.IfElseIRGeneration (0 ms)
+32: [----------] 1 test from ControlFlowTest (0 ms total)
+32: 
+32: [----------] Global test environment tear-down
+32: [==========] 1 test from 1 test suite ran. (0 ms total)
+32: [  PASSED  ] 1 test.
+32/35 Test #32: ControlFlowTest.IfElseIRGeneration ..........................   Passed    0.00 sec
+test 33
+      Start 33: ControlFlowTest.WhileLoopIRGeneration
+
+33: Test command: /home/dhanraj/thermolang/build/tests/run_tests "--gtest_filter=ControlFlowTest.WhileLoopIRGeneration" "--gtest_also_run_disabled_tests"
+33: Working Directory: /home/dhanraj/thermolang/build/tests
+33: Test timeout computed to be: 10
+33: Running main() from /home/dhanraj/thermolang/build/_deps/googletest-src/googletest/src/gtest_main.cc
+33: Note: Google Test filter = ControlFlowTest.WhileLoopIRGeneration
+33: [==========] Running 1 test from 1 test suite.
+33: [----------] Global test environment set-up.
+33: [----------] 1 test from ControlFlowTest
+33: [ RUN      ] ControlFlowTest.WhileLoopIRGeneration
+33: [       OK ] ControlFlowTest.WhileLoopIRGeneration (0 ms)
+33: [----------] 1 test from ControlFlowTest (0 ms total)
+33: 
+33: [----------] Global test environment tear-down
+33: [==========] 1 test from 1 test suite ran. (0 ms total)
+33: [  PASSED  ] 1 test.
+33/35 Test #33: ControlFlowTest.WhileLoopIRGeneration .......................   Passed    0.00 sec
+test 34
+      Start 34: EndToEndTest.CompilesAndRunsIsingSolver
+
+34: Test command: /home/dhanraj/thermolang/build/tests/run_tests "--gtest_filter=EndToEndTest.CompilesAndRunsIsingSolver" "--gtest_also_run_disabled_tests"
+34: Working Directory: /home/dhanraj/thermolang/build/tests
+34: Test timeout computed to be: 10
+34: Running main() from /home/dhanraj/thermolang/build/_deps/googletest-src/googletest/src/gtest_main.cc
+34: Note: Google Test filter = EndToEndTest.CompilesAndRunsIsingSolver
+34: [==========] Running 1 test from 1 test suite.
+34: [----------] Global test environment set-up.
+34: [----------] 1 test from EndToEndTest
+34: [ RUN      ] EndToEndTest.CompilesAndRunsIsingSolver
+34: Compiling: /home/dhanraj/thermolang/examples/4_domain_specific/3_ising_solver.thermo for target: sim
+34: --- Frontend: SUCCESS ---
+34: Program is syntactically and semantically valid.
+34: --------------------------
+34: 
+34: --- IR Generation (Before Optimization) ---
+34: 
+34: --- Optimizations Enabled ---
+34: Running optimization passes on function 'ising_square'...
+34: Running Constant Folding on 'ising_square'
+34: Running Discrete EBM Analysis Pass on 'ising_square'
+34:   Detected Discrete EBM pattern. J Matrix size: 4x4
+34:   [DEBM] nonzero_J=8 nonzero_h=4 colored_blocks=1 nonzero_words=12
+34:   GraphColoringPass: Coloring graph for EBM with 4 spins.
+34:   GraphColoringPass: Colored 4 spins into 2 independent sets.
+34: Running energy function optimization on 'ising_square'
+34:   Skipping EnergyFunctionPass; already optimized to a high-level form.
+34:   NoiseShapingPass: mode=degree+variance, strength=1, shrink_cap=0.5, degree_gain=1, var_policy=cool, var_renorm=1 (4 spins)
+34:   NoiseShapingPass: Completed variable-temperature scaling.
+34:   Skipping ConstantFoldingPass; function has been condensed to a high-level form.
+34: Running energy function optimization on 'ising_square'
+34:   Skipping EnergyFunctionPass; already optimized to a high-level form.
+34: Running optimization passes on function 'main'...
+34: Running Constant Folding on 'main'
+34:   ThermalSchedulingPass: Optimizing anneal for 'ising_square' (4 vars).
+34:     - New Initial Temp: 3.46574 (was user-defined)
+34:     - New Steps: 4000 (was user-defined)
+34: 
+34: --- IR Generation (After Optimization) ---
+34: energy function ising_square(r0, r1, r2, r3) {
+34: entry:
+34:     r25 = discrete_ebm spins=[r0, r1, r2, r3], J=<4x4>, h=<size 4>, local_T=<size 4>, colored_blocks=2
+34:     return r25
+34: }
+34: function main() {
+34: entry:
+34:     r27 = load_const 3.46574
+34:     r28 = load_const 0.95
+34:     r29 = load_const 4000
+34:     r30 = call thermal_anneal(ising_square, r27, r28, r29)
+34: }
+34: ------------------------------------------
+34: 
+34: --- Code Generation (Python Simulation Target) ---
+34: # Generated by ThermoLang Compiler
+34: import numpy as np
+34: import sys
+34: 
+34: original_print = print  # Save Python's print function
+34: def debug_print(*args, **kwargs):
+34:     original_print(*args, **kwargs)
+34:     sys.stdout.flush()
+34: 
+34: 
+34: def simulate_annealing(energy_function, initial_state, schedule):
+34:     """
+34:     Performs a simulated annealing run.
+34:     """
+34:     try:
+34:         current_state = np.array(initial_state, dtype=np.float32)
+34:         current_energy = energy_function(current_state)
+34: 
+34:         best_state = np.copy(current_state)
+34:         best_energy = current_energy
+34: 
+34:         temp = schedule['initial_temp']
+34:         steps = schedule['steps']
+34:         cooling_rate = schedule['cooling_rate']
+34: 
+34:         original_print("Starting annealing. Initial Energy: {0:.4f}, Temp: {1:.4f}".format(current_energy, temp))
+34: 
+34:         for i in range(steps):
+34:             proposed_state = np.copy(current_state)
+34:             flip_index = np.random.randint(0, len(current_state))
+34:             proposed_state[flip_index] *= -1
+34: 
+34:             proposed_energy = energy_function(proposed_state)
+34:             
+34:             delta_energy = proposed_energy - current_energy
+34: 
+34:             if delta_energy < 0 or np.random.rand() < np.exp(-delta_energy / (temp + 1e-9)):
+34:                 current_state = proposed_state
+34:                 current_energy = proposed_energy
+34: 
+34:                 if current_energy < best_energy:
+34:                     best_state = np.copy(current_state)
+34:                     best_energy = current_energy
+34:             
+34:             temp *= cooling_rate
+34: 
+34:         original_print("Finished annealing. Best Energy Found: {0:.4f}".format(best_energy))
+34:         
+34:         # --- Machine-Readable Final State Output ---
+34:         final_state_str = ', '.join(map(str, best_state.astype(int)))
+34:         original_print("[FINAL_STATE]: [{0}]".format(final_state_str))
+34:         
+34:         return best_state.tolist()
+34:     except Exception as e:
+34:         original_print("Error in simulate_annealing: {0}".format(e))
+34:         return [-1, -1, -1, -1]
+34: def ising_square(r0, r1, r2, r3):
+34:     J = np.array([[0, 2, 0, 2], [2, 0, 2, 0], [0, 2, 0, 2], [2, 0, 2, 0]])
+34:     h = np.array([1, 1, 1, 1])
+34:     s = np.array([r0, r1, r2, r3])
+34:     coupling_energy = 0.5 * np.dot(s.T, np.dot(J, s))
+34:     field_energy = np.dot(h.T, s)
+34:     r25 = -(coupling_energy + field_energy)
+34:     return r25
+34: 
+34: def main():
+34:     r27 = 3.465736
+34:     r28 = 0.950000
+34:     r29 = 4000
+34:     _wrapper_for_ising_square = lambda spins: ising_square(spins[0], spins[1], spins[2], spins[3])
+34:     r30 = simulate_annealing(energy_function=_wrapper_for_ising_square, initial_state=[1.0] * 4, schedule={'initial_temp': r27, 'cooling_rate': r28, 'steps': r29})
+34: 
+34: 
+34: if __name__ == '__main__':
+34:     try:
+34:         original_print('ThermoLang Python Simulation Starting')
+34:         result = main()
+34:         original_print('Simulation completed successfully')
+34:         original_print('Final result:', result)
+34:     except Exception as e:
+34:         original_print('Error in simulation:')
+34:         import traceback
+34:         traceback.print_exc()
+34: 
+34: >>> Output written to 3_ising_solver_sim.py
+34: 
+34: 
+34: Python file content:
+34: # Generated by ThermoLang Compiler
+34: import numpy as np
+34: import sys
+34: 
+34: original_print = print  # Save Python's print function
+34: def debug_print(*args, **kwargs):
+34:     original_print(*args, **kwargs)
+34:     sys.stdout.flush()
+34: 
+34: 
+34: def simulate_annealing(energy_function, initial_state, schedule):
+34:     """
+34:     Performs a simulated annealing run.
+34:     """
+34:     try:
+34:         current_state = np.array(initial_state, dtype=np.float32)
+34:         current_energy = energy_function(current_state)
+34: 
+34:         best_state = np.copy(current_state)
+34:         best_energy = current_energy
+34: 
+34:         temp = schedule['initial_temp']
+34:         steps = schedule['steps']
+34:         cooling_rate = schedule['cooling_rate']
+34: 
+34:         original_print("Starting annealing. Initial Energy: {0:.4f}, Temp: {1:.4f}".format(current_energy, temp))
+34: 
+34:         for i in range(steps):
+34:             proposed_state = np.copy(current_state)
+34:             flip_index = np.random.randint(0, len(current_state))
+34:             proposed_state[flip_index] *= -1
+34: 
+34:             proposed_energy = energy_function(proposed_state)
+34:             
+34:             delta_energy = proposed_energy - current_energy
+34: 
+34:             if delta_energy < 0 or np.random.rand() < np.exp(-delta_energy / (temp + 1e-9)):
+34:                 current_state = proposed_state
+34:                 current_energy = proposed_energy
+34: 
+34:                 if current_energy < best_energy:
+34:                     best_state = np.copy(current_state)
+34:                     best_energy = current_energy
+34:             
+34:             temp *= cooling_rate
+34: 
+34:         original_print("Finished annealing. Best Energy Found: {0:.4f}".format(best_energy))
+34:         
+34:         # --- Machine-Readable Final State Output ---
+34:         final_state_str = ', '.join(map(str, best_state.astype(int)))
+34:         original_print("[FINAL_STATE]: [{0}]".format(final_state_str))
+34:         
+34:         return best_state.tolist()
+34:     except Exception as e:
+34:         original_print("Error in simulate_annealing: {0}".format(e))
+34:         return [-1, -1, -1, -1]
+34: def ising_square(r0, r1, r2, r3):
+34:     J = np.array([[0, 2, 0, 2], [2, 0, 2, 0], [0, 2, 0, 2], [2, 0, 2, 0]])
+34:     h = np.array([1, 1, 1, 1])
+34:     s = np.array([r0, r1, r2, r3])
+34:     coupling_energy = 0.5 * np.dot(s.T, np.dot(J, s))
+34:     field_energy = np.dot(h.T, s)
+34:     r25 = -(coupling_energy + field_energy)
+34:     return r25
+34: 
+34: def main():
+34:     r27 = 3.465736
+34:     r28 = 0.950000
+34:     r29 = 4000
+34:     _wrapper_for_ising_square = lambda spins: ising_square(spins[0], spins[1], spins[2], spins[3])
+34:     r30 = simulate_annealing(energy_function=_wrapper_for_ising_square, initial_state=[1.0] * 4, schedule={'initial_temp': r27, 'cooling_rate': r28, 'steps': r29})
+34: 
+34: 
+34: if __name__ == '__main__':
+34:     try:
+34:         original_print('ThermoLang Python Simulation Starting')
+34:         result = main()
+34:         original_print('Simulation completed successfully')
+34:         original_print('Final result:', result)
+34:     except Exception as e:
+34:         original_print('Error in simulation:')
+34:         import traceback
+34:         traceback.print_exc()
+34: 
+34: # Explicit main execution added by test
+34: if __name__ == '__main__':
+34:     try:
+34:         print('Test starting')
+34:         result = main()
+34:         print('Test completed')
+34:     except Exception as e:
+34:         print(f'Error: {e}')
+34: 
+34: Python output:
+34: ThermoLang Python Simulation Starting
+34: Starting annealing. Initial Energy: -12.0000, Temp: 3.4657
+34: Finished annealing. Best Energy Found: -12.0000
+34: [FINAL_STATE]: [1, 1, 1, 1]
+34: Simulation completed successfully
+34: Final result: None
+34: Test starting
+34: Starting annealing. Initial Energy: -12.0000, Temp: 3.4657
+34: Finished annealing. Best Energy Found: -12.0000
+34: [FINAL_STATE]: [1, 1, 1, 1]
+34: Test completed
+34: [       OK ] EndToEndTest.CompilesAndRunsIsingSolver (246 ms)
+34: [----------] 1 test from EndToEndTest (246 ms total)
+34: 
+34: [----------] Global test environment tear-down
+34: [==========] 1 test from 1 test suite ran. (246 ms total)
+34: [  PASSED  ] 1 test.
+34/35 Test #34: EndToEndTest.CompilesAndRunsIsingSolver .....................   Passed    0.25 sec
+test 35
+      Start 35: EmbeddingTest.InsertsChainQubits
+
+35: Test command: /home/dhanraj/thermolang/build/tests/run_tests "--gtest_filter=EmbeddingTest.InsertsChainQubits" "--gtest_also_run_disabled_tests"
+35: Working Directory: /home/dhanraj/thermolang/build/tests
+35: Test timeout computed to be: 10
+35: Running main() from /home/dhanraj/thermolang/build/_deps/googletest-src/googletest/src/gtest_main.cc
+35: Note: Google Test filter = EmbeddingTest.InsertsChainQubits
+35: [==========] Running 1 test from 1 test suite.
+35: [----------] Global test environment set-up.
+35: [----------] 1 test from EmbeddingTest
+35: [ RUN      ] EmbeddingTest.InsertsChainQubits
+35: Running Hardware-Aware Embedding for 3 spins...
+35:   Routing 0 -> 2 (dist 2)... Success (Added 3 chain qubits)
+35:   CircuitTopology: Embedding Complete. Added 3 physical qubits. Grid utilization: 9.375%
+35: [TEST] Logical spins: 3. Physical spins after routing: 64
+35: [       OK ] EmbeddingTest.InsertsChainQubits (0 ms)
+35: [----------] 1 test from EmbeddingTest (0 ms total)
+35: 
+35: [----------] Global test environment tear-down
+35: [==========] 1 test from 1 test suite ran. (0 ms total)
+35: [  PASSED  ] 1 test.
+35/35 Test #35: EmbeddingTest.InsertsChainQubits ............................   Passed    0.00 sec
+
+100% tests passed, 0 tests failed out of 35
+
+Total Test time (real) =   0.39 sec

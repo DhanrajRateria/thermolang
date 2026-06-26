@@ -1,0 +1,11 @@
+Wrote /home/dhanraj/thermolang/examples/maxcut_n8_seed7.thermo with 8 nodes and 15 edges
+Wrote /home/dhanraj/thermolang/examples/maxcut_n8_seed21.thermo with 8 nodes and 16 edges
+Wrote /home/dhanraj/thermolang/examples/maxcut_n8_seed42.thermo with 8 nodes and 15 edges
+ThermoLang final validation: Max-Cut / graph optimization
+runs: 3
+average_initial_cut: 7.000
+average_final_cut: 11.667
+average_optimality_gap: 0.333
+claim: Max-Cut is expressed as an Ising/QUBO-style energy; annealing searches for a partition with more crossing edges.
+
+Saved Max-Cut validation artifacts in /home/dhanraj/thermolang/results/final_validation/02_maxcut

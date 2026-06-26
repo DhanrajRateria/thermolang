@@ -54,7 +54,7 @@ namespace thermolang::optimizer
     bool CircuitTopologyPass::run(ir::FunctionIR &function_ir)
     {
         const char *enable_env = std::getenv("THERMOLANG_ENABLE_HW_EMBEDDING");
-        std::string enabled = enable_env ? enable_env : "0";
+        std::string enabled = enable_env ? enable_env : "1";
 
         std::transform(
             enabled.begin(),
@@ -65,11 +65,11 @@ namespace thermolang::optimizer
                 return static_cast<char>(std::tolower(c));
             });
 
-        if (!(enabled == "1" || enabled == "true" || enabled == "yes" || enabled == "on"))
+        if (enabled == "0" || enabled == "false" || enabled == "no" || enabled == "off")
         {
             return false;
         }
-        
+
         bool modified = false;
 
         for (auto &block : function_ir.basic_blocks)

@@ -1,0 +1,18 @@
+Generating denoising problem: size=10x10, seed=11, noise_prob=0.2, J=1.0, h=2.5, steps=2000
+Wrote /home/dhanraj/thermolang/examples/denoise_10x10_seed11.thermo
+Noisy flips: 27
+Generating denoising problem: size=10x10, seed=42, noise_prob=0.2, J=1.0, h=2.5, steps=2000
+Wrote /home/dhanraj/thermolang/examples/denoise_10x10_seed42.thermo
+Noisy flips: 22
+Generating denoising problem: size=10x10, seed=77, noise_prob=0.2, J=1.0, h=2.5, steps=2000
+Wrote /home/dhanraj/thermolang/examples/denoise_10x10_seed77.thermo
+Noisy flips: 22
+ThermoLang final validation: image denoising
+runs: 3
+average_hamming_before: 23.667
+average_hamming_after: 20.000
+average_accuracy_after_pct: 80.000
+average_hamming_improvement_pct: 15.825
+claim: noisy binary image restoration is expressed as an energy minimization problem; the sampler searches for a lower-energy clean state.
+
+Saved denoising validation artifacts in /home/dhanraj/thermolang/results/final_validation/01_denoising

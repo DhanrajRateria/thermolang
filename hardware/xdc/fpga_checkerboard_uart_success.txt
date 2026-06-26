@@ -1,0 +1,8 @@
+Packet received after 0.87s
+Marker: 0x5A
+Bitmap: 0x5A5A
+Final 4x4 spin bitmap (+1=1, -1=0):
+0 1 0 1
+1 0 1 0
+0 1 0 1
+1 0 1 0

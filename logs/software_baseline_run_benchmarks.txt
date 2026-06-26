@@ -1,0 +1,152 @@
+===== ThermoLang End-to-End Benchmark =====
+
+--- Running Python Backend ---
+ThermoLang Python Simulation Starting
+Starting annealing. Initial Energy: -12.0000, Temp: 3.4657
+Finished annealing. Best Energy Found: -12.0000
+[FINAL_STATE]: [1, 1, 1, 1]
+Simulation completed successfully
+Final result: None
+
+
+--- Running C++ SPU Simulator Backend ---
+[SPU SIM] Starting simulated annealing...
+[SPU SIM] Initial Temp: 3.46574, Steps: 4000, Cooling Rate: 0.95
+[SPU SIM] Annealing complete. Final Energy: -4
+--- SPU Simulation Result ---
+Final Energy: -4
+Final Spin State: {-1, -1, -1, -1}
+[FINAL_STATE]: [-1, -1, -1, -1]
+
+
+--- Running Verilog FPGA Backend (Digital Twin) ---
+Compiling: /home/dhanraj/thermolang/examples/checkerboard.thermo for target: fpga
+--- Frontend: SUCCESS ---
+Program is syntactically and semantically valid.
+--------------------------
+
+--- IR Generation (Before Optimization) ---
+
+--- Optimizations Enabled ---
+Running optimization passes on function 'antiferro_model'...
+Running Constant Folding on 'antiferro_model'
+Running Discrete EBM Analysis Pass on 'antiferro_model'
+  Detected Discrete EBM pattern. J Matrix size: 16x16
+  [DEBM] nonzero_J=24 nonzero_h=0 colored_blocks=1 nonzero_words=24
+  GraphColoringPass: Coloring graph for EBM with 16 spins.
+  GraphColoringPass: Colored 16 spins into 2 independent sets.
+Running energy function optimization on 'antiferro_model'
+  Skipping EnergyFunctionPass; already optimized to a high-level form.
+  NoiseShapingPass: mode=degree+variance, strength=1, shrink_cap=0.5, degree_gain=1, var_policy=cool, var_renorm=1 (16 spins)
+  NoiseShapingPass: Completed variable-temperature scaling.
+  Skipping ConstantFoldingPass; function has been condensed to a high-level form.
+Running energy function optimization on 'antiferro_model'
+  Skipping EnergyFunctionPass; already optimized to a high-level form.
+Running optimization passes on function 'main'...
+Running Constant Folding on 'main'
+  ThermalSchedulingPass: Optimizing anneal for 'antiferro_model' (16 vars).
+    - New Initial Temp: 6.93147 (was user-defined)
+    - New Steps: 16000 (was user-defined)
+Running Constant Folding on 'main'
+  ThermalSchedulingPass: Optimizing anneal for 'antiferro_model' (16 vars).
+    - New Initial Temp: 6.93147 (was user-defined)
+    - New Steps: 16000 (was user-defined)
+
+--- IR Generation (After Optimization) ---
+energy function antiferro_model(r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13, r14, r15) {
+entry:
+    r42 = discrete_ebm spins=[r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13, r14, r15], J=<16x16>, h=<size 16>, local_T=<size 16>, colored_blocks=2
+    return r42
+}
+function main() {
+entry:
+    r43 = load_const 6.93147
+    r44 = load_const 0.99
+    r45 = load_const 16000
+    r46 = call thermal_anneal(antiferro_model, r43, r44, r45)
+}
+------------------------------------------
+
+--- Code Generation (FPGA Config Target) ---
+[FPGA DEBUG] num_spins = 16
+[FPGA DEBUG] grid_size = 4
+[FPGA DEBUG] h.size() = 16
+[FPGA DEBUG] J.size() = 16
+[FPGA DEBUG] first 8 h values:
+  h[0] = -0
+  h[1] = -0
+  h[2] = -0
+  h[3] = -0
+  h[4] = -0
+  h[5] = -0
+  h[6] = -0
+  h[7] = -0
+[FPGA DEBUG] first 4x4 block of J:
+-0 -2 -0 -2 
+-2 -0 -2 -0 
+-0 -2 -0 -2 
+-2 -0 -2 -0 
+[FPGA DEBUG] nonzero_words = 24
+>>> FPGA output written to checkerboard_config.mem and checkerboard_schedule.txt
+
+--- Running Digital Twin for /home/dhanraj/thermolang/examples/checkerboard.thermo ---
+[1/4] Compiling /home/dhanraj/thermolang/examples/checkerboard.thermo...
+[2/4] Config files copied to /home/dhanraj/thermolang/hardware/sim and saved in /home/dhanraj/thermolang/out/fpga/checkerboard
+[3/4] Compiling Verilog Testbench...
+[4/4] Executing Physics Simulation (vvp)...
+
+--- Simulation Output ---
+VCD info: dumpfile spu_trace.vcd opened for output.
+[TB] Programming Array...
+[TB] Finished programming config memory into DUT.
+[TB] Starting Anneal. T_start=6.931472, Steps=      16000
+[TB] Annealing finished.
+[TB] Final rows:
+-1 1 -1 1
+1 -1 1 -1
+-1 1 -1 1
+1 -1 1 -1
+[FINAL_STATE]: [-1, 1, -1, 1, 1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, -1]
+/home/dhanraj/thermolang/hardware/sim/tb_spu_array.v:183: $finish called at 200370000 (1ps)
+
+
+>>> SUCCESS: Digital Twin output captured.
+
+
+--- Running SPICE Backend ---
+SPICE netlist generated. Manual steps required:
+1. Run the netlist in LTSpice
+2. Save the text log output
+3. Run tools/parse_ltspice_txt.py on the log file
+Using placeholder result: [1, 1, 1, 1]
+
+--- Running Extropic's thrml Backend ---
+--- Initializing ThermoLang/thrml Runtime ---
+[SEED_CHECK]: [0.9476670026779175, 0.9785798788070679, 0.33229148387908936]
+Running Thermal Annealing...
+[FINAL_ENERGY]: -12.0
+[FINAL_STATE]: [1, 1, 1, 1]
+[VARIANCES]: 0.0000,0.0000,0.0000,0.0000
+
+
+==================================================
+          Benchmark Comparison Results
+==================================================
+Backend: Python          | Energy:  -6.0000 | State: [1, 1, 1, 1]...
+Backend: C++ SPU Sim     | Energy:  -2.0000 | State: [-1, -1, -1, -1]...
+Backend: Verilog FPGA    | VALID OUTPUT, but energy skipped (shape mismatch) | Len=16
+Backend: SPICE           | Energy:  -6.0000 | State: [1, 1, 1, 1]...
+Backend: thrml lib       | Energy:  -6.0000 | State: [1, 1, 1, 1]...
+==================================================
+
+Alignment between backends:
+Python vs C++ SPU Sim: 0.0% aligned
+Python vs Verilog FPGA: 50.0% aligned
+Python vs SPICE: 100.0% aligned
+Python vs thrml lib: 100.0% aligned
+C++ SPU Sim vs Verilog FPGA: 50.0% aligned
+C++ SPU Sim vs SPICE: 0.0% aligned
+C++ SPU Sim vs thrml lib: 0.0% aligned
+Verilog FPGA vs SPICE: 50.0% aligned
+Verilog FPGA vs thrml lib: 50.0% aligned
+SPICE vs thrml lib: 100.0% aligned

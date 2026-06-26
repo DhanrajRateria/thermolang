@@ -1,6 +1,14 @@
-// Antiferromagnetic Energy: E = +1.0 * sum(s_i * s_j)
-// This means Energy is HIGH when neighbors are EQUAL.
-// Nature wants Energy to be LOW, so neighbors will try to be DIFFERENT.
+// Full 4x4 antiferromagnetic Ising checkerboard problem.
+// Each spin wants to be opposite to its nearest neighbors.
+// The lowest-energy state is a checkerboard pattern.
+//
+// Spin convention:
+// +1 and -1 represent two possible spin states.
+//
+// Energy rule:
+// E = + sum(s_i * s_j) over neighboring cells.
+// If neighbors are equal, s_i*s_j = +1, energy is high.
+// If neighbors are different, s_i*s_j = -1, energy is low.
 
 energy fn antiferro_model(
     s0: float, s1: float, s2: float, s3: float,
@@ -8,22 +16,23 @@ energy fn antiferro_model(
     s8: float, s9: float, s10: float, s11: float,
     s12: float, s13: float, s14: float, s15: float
 ) -> float {
-   // A simple 4x4 grid with J = +1.0 (Antiferromagnetic)
-   // We define just a few connections to test the compiler's mapping
-   let J = 1.0;
-   
-   // Row 0
-   let r0 = J * (s0*s1 + s1*s2 + s2*s3 + s3*s0); 
-   // Row 1
-   let r1 = J * (s4*s5 + s5*s6 + s6*s7 + s7*s4);
-   
-   // Vertical connections (Columns)
-   let c0 = J * (s0*s4 + s1*s5 + s2*s6 + s3*s7);
-   
-   return r0 + r1 + c0;
+    let J = 1.0;
+
+    // Horizontal nearest-neighbor edges
+    let r0 = J * (s0*s1 + s1*s2 + s2*s3);
+    let r1 = J * (s4*s5 + s5*s6 + s6*s7);
+    let r2 = J * (s8*s9 + s9*s10 + s10*s11);
+    let r3 = J * (s12*s13 + s13*s14 + s14*s15);
+
+    // Vertical nearest-neighbor edges
+    let c0 = J * (s0*s4 + s4*s8 + s8*s12);
+    let c1 = J * (s1*s5 + s5*s9 + s9*s13);
+    let c2 = J * (s2*s6 + s6*s10 + s10*s14);
+    let c3 = J * (s3*s7 + s7*s11 + s11*s15);
+
+    return r0 + r1 + r2 + r3 + c0 + c1 + c2 + c3;
 }
 
 fn main() -> void {
-    // Run the annealing process
     let result = thermal_anneal(antiferro_model, 50.0, 0.99, 2000);
 }

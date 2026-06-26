@@ -1,0 +1,114 @@
+Compiling: /home/dhanraj/thermolang/examples/checkerboard.thermo for target: fpga
+--- Frontend: SUCCESS ---
+Program is syntactically and semantically valid.
+--------------------------
+
+--- IR Generation (Before Optimization) ---
+
+--- Optimizations Enabled ---
+Running optimization passes on function 'antiferro_model'...
+Running Constant Folding on 'antiferro_model'
+Running Discrete EBM Analysis Pass on 'antiferro_model'
+  Detected Discrete EBM pattern. J Matrix size: 16x16
+  [DEBM] nonzero_J=48 nonzero_h=0 colored_blocks=1 nonzero_words=48
+  GraphColoringPass: Coloring graph for EBM with 16 spins.
+  GraphColoringPass: Colored 16 spins into 2 independent sets.
+Running energy function optimization on 'antiferro_model'
+  Skipping EnergyFunctionPass; already optimized to a high-level form.
+Running Hardware-Aware Embedding for 16 spins...
+  Routing 0 -> 4 (dist 4)... FAILED (Congestion)
+  Routing 1 -> 5 (dist 4)... FAILED (Congestion)
+  Routing 2 -> 6 (dist 4)... FAILED (Congestion)
+  Routing 3 -> 7 (dist 4)... FAILED (Congestion)
+  Routing 4 -> 8 (dist 5)... FAILED (Congestion)
+  Routing 5 -> 9 (dist 5)... FAILED (Congestion)
+  Routing 6 -> 10 (dist 5)... FAILED (Congestion)
+  Routing 7 -> 11 (dist 5)... FAILED (Congestion)
+  Routing 8 -> 12 (dist 4)... Success (Added 5 chain qubits)
+  Routing 9 -> 13 (dist 4)... FAILED (Congestion)
+  Routing 10 -> 14 (dist 4)... FAILED (Congestion)
+  Routing 11 -> 15 (dist 4)... FAILED (Congestion)
+  CircuitTopology: Embedding Complete. Added 5 physical qubits. Grid utilization: 32.8125%
+  Warning: 11 connections could not be routed.
+  NoiseShapingPass: mode=degree+variance, strength=1, shrink_cap=0.5, degree_gain=1, var_policy=cool, var_renorm=1 (64 spins)
+  NoiseShapingPass: Completed variable-temperature scaling.
+  Skipping ConstantFoldingPass; function has been condensed to a high-level form.
+  GraphColoringPass: Coloring graph for EBM with 64 spins.
+  GraphColoringPass: Colored 64 spins into 3 independent sets.
+Running energy function optimization on 'antiferro_model'
+  Skipping EnergyFunctionPass; already optimized to a high-level form.
+Running Hardware-Aware Embedding for 64 spins...
+  Skipping ConstantFoldingPass; function has been condensed to a high-level form.
+Running energy function optimization on 'antiferro_model'
+  Skipping EnergyFunctionPass; already optimized to a high-level form.
+Running Hardware-Aware Embedding for 64 spins...
+Running optimization passes on function 'main'...
+Running Constant Folding on 'main'
+  ThermalSchedulingPass: Optimizing anneal for 'antiferro_model' (16 vars).
+    - New Initial Temp: 6.93147 (was user-defined)
+    - New Steps: 16000 (was user-defined)
+Running Constant Folding on 'main'
+  ThermalSchedulingPass: Optimizing anneal for 'antiferro_model' (16 vars).
+    - New Initial Temp: 6.93147 (was user-defined)
+    - New Steps: 16000 (was user-defined)
+
+--- IR Generation (After Optimization) ---
+energy function antiferro_model(r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13, r14, r15) {
+entry:
+    r71 = discrete_ebm spins=[r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13, r14, r15, q_ancilla_16, q_ancilla_17, q_ancilla_18, q_ancilla_19, q_ancilla_20, q_ancilla_21, q_ancilla_22, q_ancilla_23, q_ancilla_24, q_ancilla_25, q_ancilla_26, q_ancilla_27, q_ancilla_28, q_ancilla_29, q_ancilla_30, q_ancilla_31, q_ancilla_32, q_ancilla_33, q_ancilla_34, q_ancilla_35, q_ancilla_36, q_ancilla_37, q_ancilla_38, q_ancilla_39, q_ancilla_40, q_ancilla_41, q_ancilla_42, q_ancilla_43, q_ancilla_44, q_ancilla_45, q_ancilla_46, q_ancilla_47, q_ancilla_48, q_ancilla_49, q_ancilla_50, q_ancilla_51, q_ancilla_52, q_ancilla_53, q_ancilla_54, q_ancilla_55, q_ancilla_56, q_ancilla_57, q_ancilla_58, q_ancilla_59, q_ancilla_60, q_ancilla_61, q_ancilla_62, q_ancilla_63], J=<64x64>, h=<size 64>, local_T=<size 64>, colored_blocks=3
+    return r71
+}
+function main() {
+entry:
+    r72 = load_const 6.93147
+    r73 = load_const 0.99
+    r74 = load_const 16000
+    r75 = call thermal_anneal(antiferro_model, r72, r73, r74)
+}
+------------------------------------------
+
+--- Code Generation (FPGA Config Target) ---
+[FPGA DEBUG] num_spins = 64
+[FPGA DEBUG] grid_size = 8
+[FPGA DEBUG] h.size() = 64
+[FPGA DEBUG] J.size() = 64
+[FPGA DEBUG] first 8 h values:
+  h[0] = -0
+  h[1] = -0
+  h[2] = -0
+  h[3] = -0
+  h[4] = -0
+  h[5] = -0
+  h[6] = -0
+  h[7] = -0
+[FPGA DEBUG] first 4x4 block of J:
+0 -1.73205 0 0 
+-1.73205 0 -2 0 
+0 -2 0 -1.73205 
+0 0 -1.73205 0 
+[FPGA DEBUG] nonzero_words = 36
+>>> FPGA output written to checkerboard_config.mem and checkerboard_schedule.txt
+
+--- Running Digital Twin for examples/checkerboard.thermo ---
+[1/4] Compiling examples/checkerboard.thermo...
+[2/4] Config files copied to /home/dhanraj/thermolang/hardware/sim and saved in /home/dhanraj/thermolang/out/fpga/checkerboard
+[3/4] Compiling Verilog Testbench...
+[4/4] Executing Physics Simulation (vvp)...
+
+--- Simulation Output ---
+VCD info: dumpfile spu_trace.vcd opened for output.
+WARNING: /home/dhanraj/thermolang/hardware/sim/tb_spu_array.v:118: $readmemh(config.mem): Too many words in the file for the requested range [0:79].
+[TB] Programming Array...
+[TB] Finished programming config memory into DUT.
+[TB] Starting Anneal. T_start=6.931472, Steps=      16000
+[TB] Annealing finished.
+[TB] Final rows:
+-1 1 -1 1
+-1 1 -1 1
+-1 1 -1 1
+1 -1 1 -1
+[FINAL_STATE]: [-1, 1, -1, 1, -1, 1, -1, 1, -1, 1, -1, 1, 1, -1, 1, -1]
+/home/dhanraj/thermolang/hardware/sim/tb_spu_array.v:183: $finish called at 200370000 (1ps)
+
+
+>>> SUCCESS: Digital Twin output captured.
